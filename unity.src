@@ -2937,7 +2937,8 @@ Menu = {}
         file = obj
         if file isa __shell or typeof(file) == "ftpshell" then file = File(host_computer(file), "/")
         if file isa __computer then file = File(file, "/")
-        if file isa __file then file = self.toRoot(file)
+        if file isa __file then file = self.toRoot(file) else return print("Object is not an acceptable type! ".color("red") + typeof(file))
+        
         if not file then return "unknown"
         root = file.get_folders.first("path", "/root")
         if root and root.has_permission("r") and root.has_permission("w") and root.has_permission("x") then return "root"
