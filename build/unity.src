@@ -918,7 +918,7 @@ unsecdb.push(package.thisC.File(current_path+"/VDB/unsec"+i+".db"))
 i=i+1
 end for
 if unsecdb.len==0 then
-print("Target database not found, creating mew database...")
+print("Target database not found, creating new database...")
 out=package.thisC.touch(current_path+"/VDB","unsec0.db")
 if out isa string then exit(("Target creation "+out).color("red"))
 unsecdb.push(package.thisC.File(current_path+"/VDB/unsec0.db"))
@@ -2795,6 +2795,7 @@ if not is_valid_ip(hackshop) or is_lan_ip(hackshop) then exit("That is an invali
 out=aptclient.add_repo(hackshop)
 if not isNullOrEmpty(out) then exit(out.color("red"))
 aptclient.update
+if aptclient.search("metaxploit.so").is_match("not found") then exit("That is not a repo! Please delete /etc/apt/sources.txt and try again!".color("red"))
 end if
 print("Updating Metaxploit...".color("blue"))
 aptclient.install("metaxploit.so",current_path)
@@ -2859,16 +2860,15 @@ cRo.ver=ver
 return cRo
 end function
 Menu.incAc=function
-if self.probe(package.Depth[package.Session].shell)!="root" then return 
-shell=package.Depth[0].shell
+if active_user!="root" then return 
 loc="/lib/aptclient.so"
 ac=include_lib(loc)
 if not ac then
-if package.Session!=0 then shell.scp(package.AcF.path,package.thisC.File(current_path).path,package.Depth[package.Session].shell)
+if package.Session!=0 then package.Depth[0].shell.scp(package.AcF.path,package.thisC.File(current_path).path,package.Depth[package.Session].shell)
 loc=current_path+"/aptclient.so"
 ac=include_lib(loc)
 end if
-if not ac then return print("Error: Aptclient not found on system and couldn't be moved up!".color("red"))
+if not ac or typeof(ac)!="aptclientLib" then return print("Error: Aptclient not found on system and couldn't be moved up!".color("red"))
 ver=package.Depth[package.Session].Mx.lib.load(loc).version
 aCo=new Tool
 aCo.lib=ac
