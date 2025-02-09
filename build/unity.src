@@ -1918,10 +1918,12 @@ end if
 if i=="y" then
 sp=s.split(":")
 res=metaLib.overflow(sp[1],sp[2])
+if res isa string then return print(("Non-payment error!"+res).color("red"))
 if not res then
 if user_input("Can you fix this? (y/N)\n")=="y" then
 if user_input("Is this an input issue? (Password Change/Lan Bounce) (y/N)\n")=="y" then
 res=metaLib.overflow(sp[1],sp[2],user_input("Enter input to resolve above problem:\n"))
+if res isa string then return print(("Non-payment error!"+res).color("red"))
 if not res then
 sp[3]="?"
 sp[4]="?"
@@ -2014,6 +2016,7 @@ i=user_input("Enter new password: ",1).trim
 if not i.isAlphaNum or i.len>15 then return print("Password must be 15 characters or less and be alphanumeric!".color("red"))
 end if
 res=metaLib.overflow(sp[1],sp[2],i)
+if res isa string then return print(("Non-payment error!"+res).color("red"))
 if not res then
 print("Exploit failed!".color("red"))
 if package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport") and user_input("Override enabled!\nRepeat? (y/N) ")=="y" then
@@ -2024,6 +2027,7 @@ while not res and package.Depth[0].shell.host_computer.show_procs.is_match("Expl
 res=metaLib.overflow(sp[1],sp[2],i)
 wait(t)
 end while
+if res isa string then return print(("Non-payment error!"+res).color("red"))
 else
 return 
 end if
@@ -2069,10 +2073,12 @@ out.push(mem)
 out.push(target)
 print("Overflow: "+mem+" : "+target)
 res=metaLib.overflow(mem,target)
+if res isa string then return print(("Non-payment error!"+res).color("red"))
 if not res and not cur then
 if user_input("Can you fix this? (y/N)\n")=="y" then
 if user_input("Is this an input issue? (Password Change/Lan Bounce) (y/N)\n")=="y" then
 res=metaLib.overflow(mem,target,user_input("Enter input to resolve above problem:\n"))
+if res isa string then return print(("Non-payment error!"+res).color("red"))
 if not res then
 out.push("?")
 out.push("?")
@@ -2093,7 +2099,7 @@ else if not res and cur then
 out.push("?")
 out.push("?")
 end if
-if res then
+if res and not res isa string then
 type=""
 level=""
 if res isa __shell then
@@ -2230,6 +2236,7 @@ if not metaLib then return print("This isn't a scannable library!".color("red"))
 i=""
 if x.hasIndex(2) then i=x[2]
 res=metaLib.overflow(x[0],x[1],i)
+if res isa string then return print(("Non-payment error!"+res).color("red"))
 if not res then
 print("Exploit failed!".color("red"))
 if package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport") and user_input("Override enabled!\nRepeat? (y/N)")=="y" then
@@ -2240,6 +2247,7 @@ while not res and package.Depth[0].shell.host_computer.show_procs.is_match("Expl
 res=metaLib.overflow(sp[1],sp[2],i)
 wait(t)
 end while
+if res isa string then return print(("Non-payment error!"+res).color("red"))
 else
 return 
 end if
