@@ -824,7 +824,7 @@ Menu = {}
         if isShellLaunch then print("Shell launch...")
         package.thisC = host_computer(get_shell)
         if not isShellLaunch then
-            print("\n<align=""center"">Celestial Tools" + char(169) + "</align>\n<align=""center""><size=50px>Unity</size></align>\n<align=""center"">v2.0.0-Ultimate</align>\n")
+            print("\n<align=""center"">Celestial Tools" + char(169) + "</align>\n<align=""center""><size=50px>Unity</size></align>\n<align=""center"">v2.0.1-Ultimate</align>\n")
             print("Initializing...")
             if program_path.split("/")[-1].is_match("dddd") then package.thisC.File(current_path + "/dddd").move(current_path, "unity")
             package.unity = package.thisC.File(current_path + "/unity")
