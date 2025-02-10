@@ -11,96 +11,51 @@ if each=="" then self.remove(i)
 i=i+1
 end for
 end function
-list.first=function(key,value)
-for each in self
-if each isa string then
-if key=="is" and each==value then return each
-if key=="contains" and each.is_match(value) then return each
-else if each isa __file then
-if key=="name" and each.name==value then return each
-if key=="namehas" and each.name.is_match(value) then ret.push(each)
-if key=="path" and each.path==value then return each
-if key=="permissions" and each.permissions==value then return each
-if key=="has_permission" then
-v=value.values
+Linq=function(e,k,v)
+if typeof(e)=="file" then
+if k=="namehas" then
+if e.name.is_match(v) then return true
+end if
+if k=="has_permission" then
+s=v.values
 c=""
-for p in v
-if each.has_permission(p) then c=c+p
+for p in s
+if e.has_permission(p) then c=c+p
 end for
-if c==value then return each
+if c==v then return true
+return false
 end if
-if key=="size" and each.size==value then return each
-else if typeof(each)=="port" then
-if key=="port_number" and each.port_number==value then return each
-if key=="is_closed" and each.is_closed==value then return each
-if key=="get_lan_ip" and each.get_lan_ip==value then return each
-else if each isa map then
-if each[key]==value then return each
 end if
+if e isa string then
+if k=="is" and e==v then return true
+if k=="contains" and e.is_match(v) then return true
+return false
+end if
+if not e.values[0].hasIndex(k) then return print("Index "+k+" not found in map!")
+f=@e[k]
+if f(e)==v then return true
+return false
+end function
+list.first=function(k,v)
+for e in self
+if Linq(e,k,v) then return e
 end for
 return null
 end function
-list.where=function(key,value)
-ret=[]
-for each in self
-if each isa string then
-if key=="is" and each==value then ret.push(each)
-if key=="contains" and each.is_match(value) then ret.push(each)
-else if each isa __file then
-if key=="name" and each.name==value then ret.push(each)
-if key=="namehas" and each.name.is_match(value) then ret.push(each)
-if key=="path" and each.path==value then ret.push(each)
-if key=="permissions" and each.permissions==value then ret.push(each)
-if key=="has_permission" then
-v=value.values
-c=""
-for p in v
-if each.has_permission(p) then c=c+p
+list.where=function(k,v)
+r=[]
+for e in self
+if Linq(e,k,v) then r.push(e)
 end for
-if c==value then ret.push(each)
-end if
-if key=="size" and each.size==value then ret.push(each)
-else if typeof(each)=="port" then
-if key=="port_number" and each.port_number==value then ret.push(each)
-if key=="is_closed" and each.is_closed==value then ret.push(each)
-if key=="get_lan_ip" and each.get_lan_ip==value then ret.push(each)
-else if each isa map then
-if each[key]==value then ret.push(each)
-end if
-end for
-if ret.len<1 then ret=null
-return ret
+if r.len>0 then return r
+return null
 end function
-list.wherenot=function(key,value)
-ret=[]
-for each in self
-if each isa string then
-if key=="is" and each!=value then ret.push(each)
-if key=="contains" and not each.is_match(value) then ret.push(each)
-else if each isa __file then
-if key=="name" and each.name!=value then ret.push(each)
-if key=="namehas" and each.name.is_match(value) then ret.push(each)
-if key=="path" and each.path!=value then ret.push(each)
-if key=="permissions" and each.permissions!=value then ret.push(each)
-if key=="has_permission" then
-v=value.values
-c=""
-for p in v
-if each.has_permission(p) then c=c+p
+list.wherenot=function(k,v)
+r=[]
+for e in self
+if not Linq(e,k,v) then r.push(e)
 end for
-if c!=value then ret.push(each)
-end if
-if key=="size" and each.size!=value then ret.push(each)
-else if typeof(each)=="port" then
-if key=="port_number" and each.port_number!=value then ret.push(each)
-if key=="is_closed" and each.is_closed!=value then ret.push(each)
-if key=="get_lan_ip" and each.get_lan_ip!=value then ret.push(each)
-else if each isa map then
-if each[key]!=value then ret.push(each)
-end if
-end for
-if ret.len<1 then ret=null
-return ret
+if r.len>0 then return r
 end function
 string.regex_escape=function
 result=self
