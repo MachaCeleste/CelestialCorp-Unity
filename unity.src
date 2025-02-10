@@ -1188,7 +1188,7 @@ Menu = {}
                             b.chmod("g+x")
                             b.chmod("o+x")
                         end for
-                        apps = [ "Terminal", "Mail", "Chat" ]
+                        apps = [ "Terminal", "Mail", "Chat", "Settings" ]
                         for app in apps
                             a = File(c, "/usr/bin/" + app + ".exe")
                             if not a then continue
