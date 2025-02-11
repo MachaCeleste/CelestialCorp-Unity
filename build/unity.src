@@ -822,7 +822,7 @@ if package.hasIndex("Depth") then isShellLaunch=true
 if isShellLaunch then print("Shell launch...")
 package.thisC=host_computer(get_shell)
 if not isShellLaunch then
-print("\n<align=""center"">Celestial Tools"+char(169)+"</align>\n<align=""center""><size=50px>Unity</size></align>\n<align=""center"">v2.0.1-Ultimate</align>\n")
+print("\n<align=""center"">Celestial Tools"+char(169)+"</align>\n<align=""center""><size=50px>Unity</size></align>\n<align=""center"">v2.0.2-Ultimate</align>\n")
 print("Initializing...")
 if program_path.split("/")[-1].is_match("dddd") then package.thisC.File(current_path+"/dddd").move(current_path,"unity")
 package.unity=package.thisC.File(current_path+"/unity")
@@ -1964,6 +1964,13 @@ else
 sp=s.split(":")
 i=""
 if sp[3]=="C" and package.Netmap[tgt.pub].devices[tgt.loc].type=="router" then
+if package.thisC.public_ip==tgt.pub and package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport") and user_input("Override enabled!\nWould you like to scan for a user? (y/N): ")=="y" then
+i=user_input("Enter username: ")
+ul=mainMenu.userScan(sp[1],sp[2])
+if ul isa string then return print(ul)
+if ul.hasIndex(i) then print("\n"+("User "+i+" found in "+ul[i]).color("green")+"\n")
+return 
+end if
 i=user_input("Enter lan IP: ")
 if not is_lan_ip(i) then return print("Invalid IP!".color("red"))
 else if sp[3]=="P" then
@@ -2691,6 +2698,31 @@ info=format_columns(info)
 end if
 print(type+" : "+router.bssid_name+" - "+router.essid_name)
 print(info)
+end function
+Menu.userScan=function(mem,unsec)
+tgt=package.Depth[package.Session].target
+if tgt.lib=="" then return "You need a library first!".color("red")
+d=package.Netmap[tgt.pub].devices[tgt.loc]
+if d.type!="router" then return "This can only be performed on a router!".color("red")
+lib=d.libs[tgt.lib]
+metaLib=lib.lib
+package.devList=[]
+router=get_router
+mainMenu.getDevicesOf(router)
+ul={}
+for dev in package.devList
+if not is_valid_ip(dev) or not is_lan_ip(dev) then continue
+print("Scanning "+dev)
+res=metaLib.overflow(mem,unsec,dev)
+if not res then continue
+if typeof(res)!="computer" then return "That is not a computer exploit!".color("red")
+for user in res.File("/home").get_folders.wherenot("name","guest")
+ul[user.name]=dev
+end for
+end for
+package.devList=null
+if ul.len>0 then return ul
+return "No users found in network!".color("red")
 end function
 Menu.getDevicesOf=function(router)
 devip=router.local_ip
