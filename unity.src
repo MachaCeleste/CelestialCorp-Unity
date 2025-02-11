@@ -1,4 +1,4 @@
-//Unity v2.0.2-Ultimate for greyscript
+//Unity v2.0.8-Ultimate for greyscript
 // by MachaCeleste 20231115
 package = @get_custom_object
 __shell = get_shell
@@ -121,6 +121,10 @@ Target = {}
     Target.loc = ""
     Target.lib = ""
     Target.obj = ""
+User = {}
+    User.dev = ""
+    User.mail = ""
+    User.pass = ""
 RshellServer = {}
     RshellServer.Mx = null
     RshellServer.rshelld = null
@@ -824,7 +828,7 @@ Menu = {}
         if isShellLaunch then print("Shell launch...")
         package.thisC = host_computer(get_shell)
         if not isShellLaunch then
-            print("\n<align=""center"">Celestial Tools" + char(169) + "</align>\n<align=""center""><size=50px>Unity</size></align>\n<align=""center"">v2.0.2-Ultimate</align>\n")
+            print("\n<align=""center"">Celestial Tools" + char(169) + "</align>\n<align=""center""><size=50px>Unity</size></align>\n<align=""center"">v2.0.8-Ultimate</align>\n")
             print("Initializing...")
             if program_path.split("/")[-1].is_match("dddd") then package.thisC.File(current_path + "/dddd").move(current_path, "unity")
             package.unity = package.thisC.File(current_path + "/unity")
@@ -1970,7 +1974,16 @@ Menu = {}
                                         i = user_input("Enter username: ")
                                         ul = mainMenu.userScan(sp[1], sp[2])
                                         if ul isa string then return print(ul)
-                                        if ul.hasIndex(i) then print("\n" + ("User " + i + " found in " + ul[i]).color("green") + "\n")
+                                        if ul.hasIndex(i) then
+                                            print("\n" + ("-"*60) + "\n")
+                                            out = []
+                                            out.push(("User " + i + " found in " + ul[i].dev).color("green"))
+                                            if not isNullOrEmpty(ul[i].mail) then
+                                                out.push(("  Email: " + ul[i].mail).color("green"))
+                                                out.push(("   Pass: " + decipher(package.Cr.lib, ul[i].pass)).color("green"))
+                                            end if
+                                            print(out.join(char(10)) + "\n")
+                                        end if
                                         return
                                     end if
                                     i = user_input("Enter lan IP: ")
@@ -2714,12 +2727,19 @@ Menu = {}
         ul = {}
         for dev in package.devList
             if not is_valid_ip(dev) or not is_lan_ip(dev) then continue
-            print("Scanning " + dev)
             res = metaLib.overflow(mem, unsec, dev)
             if not res then continue
             if typeof(res) != "computer" then return "That is not a computer exploit!".color("red")
             for user in res.File("/home").get_folders.wherenot("name", "guest")
-                ul[user.name] = dev
+                u = new User
+                u.dev = dev
+                f = user.get_folders.first("name", "Config").get_files.first("name", "Mail.txt")
+                if f then
+                    sp = f.get_content.split(":")
+                    u.mail = sp[0]
+                    u.pass = sp[1]
+                end if
+                ul[user.name] = u
             end for
         end for
         package.devList = null
@@ -2955,7 +2975,7 @@ Menu = {}
         end function
     Menu.rndIp = function
         ip = ""
-        while not is_valid_ip(ip) or is_lan_ip(ip)
+        while not is_valid_ip(ip) or is_lan_ip(ip) or whois(ip).is_match("Address not found")
             ip = self.rndOct + "." + self.rndOct + "." + self.rndOct + "." + self.rndOct
         end while
         return ip
