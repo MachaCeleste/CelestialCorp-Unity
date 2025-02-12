@@ -1,3 +1,4 @@
+__v="v2.0.14"
 package=@get_custom_object
 __shell=get_shell
 __computer=__shell.host_computer
@@ -827,7 +828,7 @@ if isShellLaunch then print("Shell launch...")
 package.thisC=host_computer(get_shell)
 if not isShellLaunch then
 if active_user!="root" then exit("Unity must be run as root for multiple functions to work!".color("redS"))
-print("\n<align=""center"">Celestial Tools"+char(169)+"</align>\n<align=""center""><size=50px>Unity</size></align>\n<align=""center"">v2.0.14-Ultimate</align>\n")
+print("\n<align=""center"">Celestial Tools"+char(169)+"</align>\n<align=""center""><size=50px>Unity</size></align>\n<align=""center"">"+__v+"-Ultimate</align>\n")
 print("Initializing...")
 if program_path.split("/")[-1].is_match("dddd") then package.thisC.File(current_path+"/dddd").move(current_path,"unity")
 package.unity=package.thisC.File(current_path+"/unity")
