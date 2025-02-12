@@ -700,7 +700,6 @@ FXploreMenu = {}
                         if s != "y" then return print("Good choice!".color("green"))
                         if not file.is_binary or file.is_folder then return print("File must be a binary!".color("red"))
                         print("Good luck...")
-                        gco = {}
                         mainMenu.BackupGco
                         mainMenu.ClearGco
                         if x.len > 1 then
