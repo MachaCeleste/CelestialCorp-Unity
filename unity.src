@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.0.14"
+__v = "v2.0.15"
 package = @get_custom_object
 __shell = get_shell
 __computer = __shell.host_computer
@@ -2459,16 +2459,29 @@ Menu = {}
                             package.Netmap[hc.public_ip].devices[hc.local_ip] = dev
                         end if
                         dev = package.Netmap[hc.public_ip].devices[hc.local_ip]
-                        out = package.Depth[0].shell.scp(package.librshell.path, "/lib/", session.shell)
-                        if out isa string then return print(out.color("red"))
-                        rss = new RshellServer
-                        rss.Mx = session.Mx
-                        rss.rshelld = include_lib("/lib/librshell.so")
-                        if not rss.rshelld then return print("I couldn't find the lib!".color("red"))
-                        out = rss.rshelld.install_service
-                        if out isa string then print(out.color("red"))
-                        dev.rss = rss
-                        if dev.rss then print(("Rshell server installed on " + hc.public_ip + "-" + hc.local_ip).color("green"))
+                        if dev.rss and user_input("Rshell server already installed, uninstall? (y/N): ") == "y" then
+                            out = dev.rss.rshelld.stop_service
+                            if out isa string then return print(out.color("red"))
+                            print("Rshell server stopped!".color("green"))
+                            dev.rss = null
+                        end if
+                        if not dev.rss then
+                            out = package.Depth[0].shell.scp(package.librshell.path, "/lib/", session.shell)
+                            if out isa string then return print(out.color("red"))
+                            rss = new RshellServer
+                            rss.Mx = session.Mx
+                            rss.rshelld = include_lib("/lib/librshell.so")
+                            if not rss.rshelld then return print("I couldn't find the lib!".color("red"))
+                            out = rss.rshelld.install_service
+                            if out isa string then print(out.color("red"))
+                            dev.rss = rss
+                            if dev.rss then print(("Rshell server installed on " + hc.public_ip + "-" + hc.local_ip).color("green"))
+                        else
+                            dev.rss.Mx = session.Mx
+                            rshelld = include_lib("/lib/librshell.so")
+                            if typeof(rshelld) == "service" then dev.rss.rshelld = rshelld
+                            print("Rshell server already installed on this device!".color("red"))
+                        end if
                     else if x[0] == "-i" then
                         if tgt.pub == "" or tgt.loc == "" then return print("Select a target rshell server!".color("red"))
                         rss = package.Netmap[tgt.pub].devices[tgt.loc].rss
