@@ -2867,7 +2867,7 @@ cRo.ver=ver
 return cRo
 end function
 Menu.incAc=function
-if active_user!="root" then return 
+if active_user!="root" and package.Session!=0 then return 
 loc="/lib/aptclient.so"
 ac=include_lib(loc)
 if not ac then
