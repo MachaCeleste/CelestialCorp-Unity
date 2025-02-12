@@ -1,4 +1,4 @@
-//Unity v2.0.8-Ultimate for greyscript
+//Unity v2.0.9-Ultimate for greyscript
 // by MachaCeleste 20231115
 package = @get_custom_object
 __shell = get_shell
@@ -828,7 +828,7 @@ Menu = {}
         if isShellLaunch then print("Shell launch...")
         package.thisC = host_computer(get_shell)
         if not isShellLaunch then
-            print("\n<align=""center"">Celestial Tools" + char(169) + "</align>\n<align=""center""><size=50px>Unity</size></align>\n<align=""center"">v2.0.8-Ultimate</align>\n")
+            print("\n<align=""center"">Celestial Tools" + char(169) + "</align>\n<align=""center""><size=50px>Unity</size></align>\n<align=""center"">v2.0.9-Ultimate</align>\n")
             print("Initializing...")
             if program_path.split("/")[-1].is_match("dddd") then package.thisC.File(current_path + "/dddd").move(current_path, "unity")
             package.unity = package.thisC.File(current_path + "/unity")
@@ -2403,7 +2403,7 @@ Menu = {}
                         tgt.obj = ""
                         tgt.lib = ""
                     else if tgt.loc != "" then
-                        if package.thisC.local_ip == tgt.loc then return print("Cannot delete active device!".color("red"))
+                        if package.thisC.public_ip == tgt.pub and package.thisC.local_ip == tgt.loc then return print("Cannot delete active device!".color("red"))
                         package.Netmap[tgt.pub].devices.remove(tgt.loc)
                         tgt.obj = ""
                         tgt.lib = ""
@@ -2793,11 +2793,14 @@ Menu = {}
         end function
     Menu.updateLibs = function
         hc = package.thisC
-        if not hc.File(current_path + "/aptclient.so") then
+        acf = hc.File(current_path + "/aptclient.so")
+        if not acf then
             out = self.moveTo("aptclient.so")
             if out isa string then exit(out.color("red"))
+            acf = hc.File(current_path + "/aptclient.so")
         end if
-        aptclient = include_lib(hc.File(current_path + "/aptclient.so").path)
+        if not acf then exit("Error: Aptclient.so was not found!".color("red"))
+        aptclient = include_lib(acf.path)
         if aptclient.search("metaxploit.so").is_match("not found") then
             hackshop = user_input("ERROR: Hackshop not found!".color("red") + "\nUnity needs the hackshop to download metaxploit and librshell!\n Enter a hackshop IP: ")
             if not is_valid_ip(hackshop) or is_lan_ip(hackshop) then exit("That is an invalid hackshop IP!".color("red"))
