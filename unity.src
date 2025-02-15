@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.0.16"
+__v = "v2.0.17"
 package = @get_custom_object
 __shell = get_shell
 __computer = __shell.host_computer
@@ -2302,9 +2302,11 @@ Menu = {}
                     dev = net.devices[tgt.loc]
                     lib = dev.libs[tgt.lib]
                     if not lib.lib then return print("This isn't a valid library!".color("red"))
-                    net.debUser = user_input("Username: ")
-                    net.debPass = user_input("Password:", 1)
-                    debLib = lib.lib.debug_tools(uname, pword)
+                    if (not net.debUser or not net.debPass) and user_input("Credentials found stored in net, would you like to enter new credentials? (y/N): ") == "y" then
+                        net.debUser = user_input("Username: ")
+                        net.debPass = user_input("Password:", 1)
+                    end if
+                    debLib = lib.lib.debug_tools(net.debUser, net.debPass)
                     if debLib isa string then return print(debLib)
                     pobj = null
                     if x.hasIndex(1) and x[1].isValidPath then pobj = debLib.payload(x[0], x[1]) else pobj = debLib.payload(x[0])
