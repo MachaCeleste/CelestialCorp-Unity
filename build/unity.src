@@ -1452,13 +1452,15 @@ access=mainMenu.fakeLib(shell,hc,x[0].upper)
 print(("Saved "+access+" "+x[0].upper+"!").color("green"))
 end function
 mainMap.sniff={}
-mainMap.sniff.use="Usage: sniff"
-mainMap.sniff.desc="Sniff the current system for outbound or inbound connections."
+mainMap.sniff.use="Usage: sniff <b>[-e]</b>"
+mainMap.sniff.desc="Sniff the current system for outbound or inbound connections. Option to download enc src."
 mainMap.sniff.minPar=0
 mainMap.sniff.alias=[]
 mainMap.sniff.run=function(x)
 mx=package.Depth[package.Session].Mx.lib
-out=mx.sniffer
+enc=0
+if x and x.hasIndex(0) and x[0]=="-e" then enc=1
+out=mx.sniffer(enc)
 if out isa string then return print(("It smell like bitch in here...".color("red"))+"\n"+out)
 return print("I got nothin...".color("green"))
 end function

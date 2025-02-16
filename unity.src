@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.0.17"
+__v = "v2.0.18"
 package = @get_custom_object
 __shell = get_shell
 __computer = __shell.host_computer
@@ -1454,14 +1454,16 @@ Menu = {}
                     print(("Saved " + access + " " + x[0].upper + "!").color("green"))
                 end function
             mainMap.sniff = {}
-                mainMap.sniff.use = "Usage: sniff"
-                mainMap.sniff.desc = "Sniff the current system for outbound or inbound connections."
+                mainMap.sniff.use = "Usage: sniff <b>[-e]</b>"
+                mainMap.sniff.desc = "Sniff the current system for outbound or inbound connections. Option to download enc src."
                 mainMap.sniff.minPar = 0
                 mainMap.sniff.alias = []
                 mainMap.sniff.run = function(x)
                     mx = package.Depth[package.Session].Mx.lib
-                    out = mx.sniffer
-                    if out isa string then return print(("It smell like bitch in here...".color("red")) + "\n" + out)
+                    enc = 0
+                    if x and x.hasIndex(0) and x[0] == "-e" then enc = 1
+                    out = mx.sniffer(enc)
+                    if out isa string then return print(("It smell like bitch in here...".color("red")) + "\n" + out)//TODO Add save down method
                     return print("I got nothin...".color("green"))
                 end function
             mainMap.pwget = {}
