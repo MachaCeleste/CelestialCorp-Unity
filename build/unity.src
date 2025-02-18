@@ -1,4 +1,4 @@
-__v="v2.0.17"
+__v="v2.0.18"
 package=@get_custom_object
 __shell=get_shell
 __computer=__shell.host_computer
@@ -1045,7 +1045,7 @@ print(format_columns(info))
 i=user_input("Select a wifi: ").to_int
 if i isa string or (i-1)<0 then return print("Invalid selection!".color("red"))
 wifi=wlans[(i-1)].split(" ")
-acks=round(300000/wifi[1][:-1].to_int)+1
+acks=round(300000/(wifi[1][:-1].to_int+15))
 print("<color=green>Waiting for "+acks+" acks...</color>")
 res=cr.aireplay(wifi[0],wifi[2],acks)
 if res isa string then return print(res.color("red"))
