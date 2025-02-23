@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.0.18"
+__v = "v2.0.19"
 package = @get_custom_object
 __shell = get_shell
 __computer = __shell.host_computer
@@ -2162,12 +2162,6 @@ Menu = {}
                             gate = data.matches("\d.*gateway\.").values
                             if gate.len != 0 then
                                 out.push(gate.pull.values[0])
-                            else
-                                out.push("-")
-                            end if
-                            grp = data.matches("\d* user groups").values
-                            if grp.len != 0 then
-                                out.push(grp.pull.values[0])
                             else
                                 out.push("-")
                             end if
