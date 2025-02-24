@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.0.19"
+__v = "v2.0.23"
 package = @get_custom_object
 __shell = get_shell
 __computer = __shell.host_computer
@@ -1984,6 +1984,8 @@ Menu = {}
                                             if not isNullOrEmpty(ul[i].mail) then
                                                 out.push(("  Email: " + ul[i].mail).color("green"))
                                                 out.push(("   Pass: " + decipher(package.Cr.lib, ul[i].pass)).color("green"))
+                                            else
+                                                out.push("Error reading Mail.txt".color("red"))
                                             end if
                                             print(out.join(char(10)) + "\n")
                                         end if
@@ -2743,13 +2745,27 @@ Menu = {}
             if not res then continue
             if typeof(res) != "computer" then return "That is not a computer exploit!".color("red")
             for user in res.File("/home").get_folders.wherenot("name", "guest")
+                if user.name == "cctv" then
+                    print("Device is CCTV.".color("green"))
+                    continue
+                else if user.name == "iot" then
+                    print("Device is IOT.".color("green"))
+                    continue
+                end if
                 u = new User
                 u.dev = dev
                 f = user.get_folders.first("name", "Config").get_files.first("name", "Mail.txt")
                 if f then
-                    sp = f.get_content.split(":")
+                    c = f.get_content
+                    if not c.indexOf(":") then
+                        print(("Mail error: User: " + user.name + " at IP: " + dev).color("red"))
+                    else
+                    sp = c.split(":")
                     u.mail = sp[0]
                     u.pass = sp[1]
+                    end if
+                else
+                    print(("Mail error: Mail.txt not found for user: " + user.name).color("red"))
                 end if
                 ul[user.name] = u
             end for
