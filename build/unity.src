@@ -1,4 +1,4 @@
-__v="v2.0.23"
+__v="v2.0.24"
 package=@get_custom_object
 __shell=get_shell
 __computer=__shell.host_computer
