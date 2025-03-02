@@ -1,4 +1,4 @@
-__v="v2.0.24"
+__v="v2.0.25"
 package=@get_custom_object
 __shell=get_shell
 __computer=__shell.host_computer
@@ -1247,7 +1247,7 @@ print("WiFi Connected!".color("green"))
 end function
 mainMap.monitor={}
 mainMap.monitor.use="Usage: monitor <b>[bssid] [essid] [password]</b>"
-mainMap.monitor.desc="Monitor libraries on a system for ingress\nThis requires you to be on wifi first if you dont enter all optional params\nYou must have both a wifi and eth card installed, can't be run by guest."
+mainMap.monitor.desc="Monitor libraries on a system for ingress, can't be run by guest, optionally can specify wifi to use for egress."
 mainMap.monitor.minPar=0
 mainMap.monitor.alias=[]
 mainMap.monitor.run=function(x)
@@ -1289,12 +1289,11 @@ bss=x[0]
 ess=x[1]
 pass=x[2]
 end if
-c.connect_ethernet("eth0","192.168.0.253","192.168.0.1")
-hc=package.thisC
-hc.touch("/lib","rep")
-out=hc.File("/lib/rep").move("/lib","kernel_router.so")
+rc=package.thisC
+rc.touch("/lib","rep")
+out=rc.File("/lib/rep").move("/lib","kernel_router.so")
 if out isa string then return print(out.color("red"))
-kr=hc.File("/lib/kernel_router.so")
+kr=rc.File("/lib/kernel_router.so")
 print("Listening for ingress...")
 while not kr.is_binary
 end while
@@ -1302,15 +1301,6 @@ out=c.connect_wifi(dev,bss,ess,pass)
 if out isa string then return print(out)
 print("Ingress detected!".color("red"))
 print("See ya later stinky!".color("purple"))
-print("Waiting for the stinky to touch something...")
-logf=c.File("/var/system.log")
-while not logf.is_binary
-end while
-downloads="/root/Downloads"
-if package.user!="root" then downloads="/home/"+package.user+"/Downloads"
-out=scp(package.Depth[package.Session].shell,"/var/system.log",downloads,package.Depth[0].shell)
-if out isa string then return print(out.color("red"))
-print("Downloaded logs, rip stinky!".color("purple"))
 end function
 mainMap.clearlog={}
 mainMap.clearlog.use="Usage: clearlog <b>[-t]</b>"
