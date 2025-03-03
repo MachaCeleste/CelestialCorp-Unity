@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.0.25"
+__v = "v2.0.26"
 package = @get_custom_object
 __shell = get_shell
 __computer = __shell.host_computer
@@ -2290,6 +2290,9 @@ Menu = {}
                     dev = net.devices[tgt.loc]
                     lib = dev.libs[tgt.lib]
                     if not lib.lib then return print("This isn't a valid library!".color("red"))
+                    if lib.lib.is_patched then
+                        return print(("Error: Library has been patched! Date library will be vulnerable: " + lib.lib.is_patched(true)).color("red"))
+                    end if
                     if (not net.debUser or not net.debPass) and user_input("Credentials found stored in net, would you like to enter new credentials? (y/N): ") == "y" then
                         net.debUser = user_input("Username: ")
                         net.debPass = user_input("Password:", 1)
