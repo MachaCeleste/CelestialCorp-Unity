@@ -1,4 +1,4 @@
-__v="v2.0.26"
+__v="v2.0.27"
 package=@get_custom_object
 __shell=get_shell
 __computer=__shell.host_computer
@@ -1291,6 +1291,11 @@ pass=x[2]
 end if
 rc=package.thisC
 rc.touch("/lib","rep")
+if (rc.File("/lib/libhttp.so")==null) then
+out=rc.File("/lib/rep").move("/lib","libhttp.so")
+if out isa string then return print(out.color("red"))
+rc.File("/lib/libhttp.so").rename("rep")
+end if
 out=rc.File("/lib/rep").move("/lib","kernel_router.so")
 if out isa string then return print(out.color("red"))
 kr=rc.File("/lib/kernel_router.so")
