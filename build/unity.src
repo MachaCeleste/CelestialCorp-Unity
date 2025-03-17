@@ -1,4 +1,4 @@
-__v="v2.0.30"
+__v="v2.0.31"
 __promptC="#fc03a9"
 __retC="green"
 __errC="red"
@@ -1758,8 +1758,10 @@ return print("No ports to grab from!".color(__errC))
 end if
 print("Scanning "+tgt.pub+"-"+tgt.loc+" at port "+portN+"...")
 net_session=package.Depth[package.Session].Mx.lib.net_use(address,portN)
-if not net_session and package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport") then
-i=user_input("Enter repeat time: ").val
+if not net_session and package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport") and user_input("Override enabled, would you like to repeat connection attempt? y/N: ").trim.lower=="y" then
+i=user_input("Enter repeat time: ")
+if not i.val isa number or i.val<0.01 or i.val>300 then return print("Invalid repeat time!".color(__errC))
+i=i.val
 while not net_session and package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport")
 net_session=package.Depth[package.Session].Mx.lib.net_use(address,portN)
 wait(i)
