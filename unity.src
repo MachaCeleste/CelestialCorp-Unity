@@ -1,6 +1,9 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.0.27"
+__v = "v2.0.29"
+__promptC = "#fc03a9"// Prompt Color
+__retC = "green"// Return Color
+__errC = "red"// Error Color
 package = @get_custom_object
 __shell = get_shell
 __computer = __shell.host_computer
@@ -18,6 +21,7 @@ Linq = function(e,k,v)
     if typeof(e)=="file" then
         if k=="namehas" then
             if e.name.is_match(v) then return true
+            return false
         end if
         if k=="has_permission" then
             s=v.values
@@ -30,9 +34,14 @@ Linq = function(e,k,v)
         end if
     end if
     if e isa string then
-        if k=="is" and e==v then return true
-        if k=="contains" and e.is_match(v) then return true
-        return false
+        if k=="is" then 
+            if e==v then return true
+            return false
+        end if
+        if k=="contains" then
+            if e.is_match(v) then return true
+            return false
+        end if
     end if
     if not e.values[0].hasIndex(k) then return print("Index " + k + " not found in map!")
     f = @e[k]
@@ -176,7 +185,7 @@ Database = {}
         if not libdb then
             print("Creating lib folder...")
             out = hc.create_folder(package.VDB.path, lib.lib_name)
-            if out isa string then return print(("Folder creation " + out).color("red"))
+            if out isa string then return print(("Folder creation " + out).color(__errC))
             libdb = package.VDB.get_folders.first("name", lib.lib_name)
         end if
         prime = lib.version.split("\.")[0]
@@ -184,7 +193,7 @@ Database = {}
         if not verdb then
             print("Creating version file...")
             out = hc.touch(libdb.path, prime)
-            if out isa string then return print(("File creation " + out).color("red"))
+            if out isa string then return print(("File creation " + out).color(__errC))
             verdb = libdb.get_files.first("name", prime)
         end if
         sp = vector.split(":")
@@ -270,24 +279,24 @@ FXploreMenu = {}
                 fxploreMap.cat.minPar = 1
                 fxploreMap.cat.run = function(x)
                     file = mainMenu.fx.folder.get_files.first("name", x[0])
-                    if not file then return print("File not found!".color("red"))
-                    if file.is_folder or file.is_binary then return print("I can't read this, it may be a folder, bin or log".color("red"))
-                    if not file.has_permission("r") then return print("I don't have permission to read that".color("red"))
+                    if not file then return print("File not found!".color(__errC))
+                    if file.is_folder or file.is_binary then return print("I can't read this, it may be a folder, bin or log".color(__errC))
+                    if not file.has_permission("r") then return print("I don't have permission to read that".color(__errC))
                     if not x.hasIndex(1) or x[1] != "-d" then
                         l = []
                         for line in file.get_content.split(char(10))
-                            l.push(line.color("green"))
+                            l.push(line.color(__retC))
                         end for
                         print(l.join(char(10)))
                         return
                     end if
                     hc = package.Depth[0].shell.host_computer
                     out = hc.touch("/root/Downloads/", x[0])
-                    if out isa string then return print(out.color("red"))
+                    if out isa string then return print(out.color(__errC))
                     hfile = hc.File("/root/Downloads/" + x[0])
-                    if not hfile then return print("Couldn't find file!".color("red"))
+                    if not hfile then return print("Couldn't find file!".color(__errC))
                     out = hfile.set_content(file.get_content)
-                    if out isa string then return print(out.color("red"))
+                    if out isa string then return print(out.color(__errC))
                 end function
             fxploreMap.cd = {}
                 fxploreMap.cd.use = "Usage: cd <b>(folder/../absPath)</b>"
@@ -303,9 +312,9 @@ FXploreMenu = {}
                         else if input != ".." then
                             f = folder.get_folders.first("name", input)
                         else
-                            return "Already at root!".color("red")
+                            return "Already at root!".color(__errC)
                         end if
-                        if f == null then return "Folder not found!".color("red")
+                        if f == null then return "Folder not found!".color(__errC)
                         return f
                     end function
                     if p.indexOf("/") != null then
@@ -324,10 +333,10 @@ FXploreMenu = {}
                     else
                         ret = navigate(x[0])
                         if ret isa string then 
-                            if ret != "Folder not found!".color("red") then return print(ret)
+                            if ret != "Folder not found!".color(__errC) then return print(ret)
                             files = mainMenu.fx.find(x[0])
                             if files isa string then return print(files)
-                            if not files then return print("Folder of that name not found in system!".color("red"))
+                            if not files then return print("Folder of that name not found in system!".color(__errC))
                             if files.len > 1 then
                                 out = "Sel Permissions Path"
                                 n = 1
@@ -340,7 +349,7 @@ FXploreMenu = {}
                                 end for
                                 print(format_columns(out))
                                 s = user_input("Selection: ").to_int
-                                if not s isa number or s > l.len then return print("Invalid selection!".color("red"))
+                                if not s isa number or s > l.len then return print("Invalid selection!".color(__errC))
                                 ret = l[s-1]
                             else
                                 ret = files[0]
@@ -360,10 +369,10 @@ FXploreMenu = {}
                     file = mainMenu.fx.folder
                     if x[1] != "." then file = (mainMenu.fx.folder.get_folders + mainMenu.fx.folder.get_files).first("name", x[1])
                     if x.hasIndex(2) and x[2] == "-R" then isRecursive = 1
-                    if not file then return print("File not found!".color("red"))
+                    if not file then return print("File not found!".color(__errC))
                     out = file.set_group(x[0], isRecursive)
-                    if out then return print(out.color("red"))
-                    print("Group set!".color("green"))
+                    if out then return print(out.color(__errC))
+                    print("Group set!".color(__retC))
                 end function
             fxploreMap.chmod = {}
                 fxploreMap.chmod.use = "Usage: chmod <b>(perms) [file/folder]/[-R]</b>"
@@ -375,10 +384,10 @@ FXploreMenu = {}
                     file = mainMenu.fx.folder
                     if (not x.hasIndex(2) and x.hasIndex(1) and x[1] == "-R") or (x.hasIndex(2) and x[2] == "-R") then isRecursive = 1
                     if x.hasIndex(1) and x[1] != "." then file = (mainMenu.fx.folder.get_folders + mainMenu.fx.folder.get_files).first("name", x[1])
-                    if not file then return print("File not found!".color("red"))
+                    if not file then return print("File not found!".color(__errC))
                     out = file.chmod(x[0], isRecursive)
-                    if out then return print(out.color("red"))
-                    print("Perms set!".color("green"))
+                    if out then return print(out.color(__errC))
+                    print("Perms set!".color(__retC))
                 end function
             fxploreMap.chown = {}
                 fxploreMap.chown.use = "Usage: chown <b>(owner) (file/folder) [-R]</b>"
@@ -390,10 +399,10 @@ FXploreMenu = {}
                     file = mainMenu.fx.folder
                     if x[1] != "." then file = (mainMenu.fx.folder.get_folders + mainMenu.fx.folder.get_files).first("name", x[1])
                     if x.hasIndex(2) and x[2] == "-R" then isRecursive = 1
-                    if not file then return print("File not found!".color("red"))
+                    if not file then return print("File not found!".color(__errC))
                     out = file.set_owner(x[0], isRecursive)
-                    if out then return print(out.color("red"))
-                    print("Owner set!".color("green"))
+                    if out then return print(out.color(__errC))
+                    print("Owner set!".color(__retC))
                 end function
             fxploreMap.cp = {}
                 fxploreMap.cp.use = "Usage: cp <b>(file/folder) (newName) [path]</b>"
@@ -401,19 +410,19 @@ FXploreMenu = {}
                 fxploreMap.cp.level = "folder"
                 fxploreMap.cp.minPar = 2
                 fxploreMap.cp.run = function(x)
-                    if not x[1].isValidName then return print("Invalid name!".color("red"))
+                    if not x[1].isValidName then return print("Invalid name!".color(__errC))
                     path = mainMenu.fx.folder.path
                     isAbsolute = false
                     if x.hasIndex(2) and x[2] != "" then isAbsolute = true
-                    if isAbsolute and x[1] == x[0] then return print("You must change the name to copy to the same dir!".color("red"))
+                    if isAbsolute and x[1] == x[0] then return print("You must change the name to copy to the same dir!".color(__errC))
                     if isAbsolute then path = x[2]
-                    if not path.isValidPath then return print("Invalid path!".color("red"))
+                    if not path.isValidPath then return print("Invalid path!".color(__errC))
                     file = mainMenu.fx.folder
                     if x[0] != "." then file = (mainMenu.fx.folder.get_folders + mainMenu.fx.folder.get_files).first("name", x[0])
-                    if not file then return print("File not found!".color("red"))
+                    if not file then return print("File not found!".color(__errC))
                     out = file.copy(path, x[1])
-                    if out and out != 1 then return print(out.color("red"))
-                    print("File copied!".color("green"))
+                    if out and out != 1 then return print(out.color(__errC))
+                    print("File copied!".color(__retC))
                 end function
             fxploreMap.crack = {}
                 fxploreMap.crack.use = "Usage: crack <b>(md5/file)</b>"
@@ -423,17 +432,17 @@ FXploreMenu = {}
                 fxploreMap.crack.run = function(x)
                     file = mainMenu.fx.folder.get_files.first("name", x[0])
                     if not file then
-                        if x[0].len < 32 or not x[0].isAlphaNum then return print("File not found or not an md5!".color("red"))
+                        if x[0].len < 32 or not x[0].isAlphaNum then return print("File not found or not an md5!".color(__errC))
                         dec = decipher(package.Cr.lib, x[0])
-                        if dec isa string then return print(("Output: " + dec).color("green"))
-                        return print("Couldn't decipher hash!".color("red"))
+                        if dec isa string then return print(("Output: " + dec).color(__retC))
+                        return print("Couldn't decipher hash!".color(__errC))
                     end if
-                    if not file.has_permission("r") then return print("No permission to read that file!".color("red"))
+                    if not file.has_permission("r") then return print("No permission to read that file!".color(__errC))
                     accounts = file.get_content.split(char(10))
                     out = "ACCOUNT PASSWORD"
                     for account in accounts
                         if account == "" then continue
-                        if account.indexOf(":") == null or account.split(":")[1].len < 32 then return print("Error parsing file!".color("red") + "\nContent:\n" + accounts)
+                        if account.indexOf(":") == null or account.split(":")[1].len < 32 then return print("Error parsing file!".color(__errC) + "\nContent:\n" + accounts)
                         enc = account.split(":")
                         dec = decipher(package.Cr.lib, enc[1])
                         out = out + char(10) + enc[0] + " " + dec
@@ -441,7 +450,7 @@ FXploreMenu = {}
                     out = format_columns(out)
                     l = []
                     for line in out.split(char(10))
-                        l.push(line.color("green"))
+                        l.push(line.color(__retC))
                     end for
                     out = l.join(char(10))
                     print(out)
@@ -452,14 +461,14 @@ FXploreMenu = {}
                 fxploreMap.mv.level = "folder"
                 fxploreMap.mv.minPar = 3
                 fxploreMap.mv.run = function(x)
-                    if not x[1].isValidName then return print("Invalid name!".color("red"))
-                    if not x[2].isValidPath then return print("Invalid path!".color("red"))
+                    if not x[1].isValidName then return print("Invalid name!".color(__errC))
+                    if not x[2].isValidPath then return print("Invalid path!".color(__errC))
                     file = mainMenu.fx.folder
                     if x[0] != "." then file = (mainMenu.fx.folder.get_folders + mainMenu.fx.folder.get_files).first("name", x[0])
-                    if not file then return print("File not found!".color("red"))
+                    if not file then return print("File not found!".color(__errC))
                     out = file.move(x[2], x[1])
-                    if out and out isa string then return print(out.color("red"))
-                    print("Move complete!".color("green"))
+                    if out and out isa string then return print(out.color(__errC))
+                    print("Move complete!".color(__retC))
                 end function
             fxploreMap.ln = {}
                 fxploreMap.ln.use = "Usage: ln <b>(file/folder) (newName) (path)</b>"
@@ -467,14 +476,14 @@ FXploreMenu = {}
                 fxploreMap.ln.level = "folder"
                 fxploreMap.ln.minPar = 3
                 fxploreMap.ln.run = function(x)
-                    if not x[1].isValidName then return print("Invalid name!".color("red"))
-                    if not x[2].isValidPath then return print("Invalid path!".color("red"))
+                    if not x[1].isValidName then return print("Invalid name!".color(__errC))
+                    if not x[2].isValidPath then return print("Invalid path!".color(__errC))
                     file = mainMenu.fx.folder
                     if x[0] != "." then file = (mainMenu.fx.folder.get_folders + mainMenu.fx.folder.get_files).first("name", x[0])
-                    if not file then return print("File not found!".color("red"))
+                    if not file then return print("File not found!".color(__errC))
                     out = file.symlink(x[2], x[1])
-                    if out isa string then return print(out.color("red"))
-                    print("Symlink created!".color("green"))
+                    if out isa string then return print(out.color(__errC))
+                    print("Symlink created!".color(__retC))
                 end function
             fxploreMap.rm = {}
                 fxploreMap.rm.use = "Usage: rm <b>(file/folder/*) [-r]</b>"
@@ -486,27 +495,27 @@ FXploreMenu = {}
                     isRecursive = 0
                     isAll = 0
                     if x.hasIndex(1) and x[1] == "-r" then
-                        if x[0] == "" then return print("you must designate a folder!".color("red"))
+                        if x[0] == "" then return print("you must designate a folder!".color(__errC))
                         isRecursive = 1
                         file = mainMenu.fx.folder.get_folders.first("name", x[0])
                     else if x[0] == "*" then
                         isAll = 1
                         file = mainMenu.fx.folder
                     end if
-                    if not file then return print("File not found!".color("red"))
-                    if not file.has_permission("w") then return print("Permission denied!".color("red"))
+                    if not file then return print("File not found!".color(__errC))
+                    if not file.has_permission("w") then return print("Permission denied!".color(__errC))
                     if file.is_folder and isRecursive == 0 and isAll == 0 then
-                        return print("That is a directory".color("red"))
+                        return print("That is a directory".color(__errC))
                     else if file.is_folder and isAll == 1 then
                         for each in file.get_folders + file.get_files
                             out = each.delete
-                            if out.len > 0 then return print(out.color("red"))
+                            if out.len > 0 then return print(out.color(__errC))
                         end for
                     else
                         out = file.delete
-                        if out.len > 0 then return print(out.color("red"))
+                        if out.len > 0 then return print(out.color(__errC))
                     end if
-                    print("Remove complete!".color("green"))
+                    print("Remove complete!".color(__retC))
                 end function
             fxploreMap.set = {}
                 fxploreMap.set.use = "Usage: set <b>(file) [-u hostfilepath]</b>"
@@ -515,20 +524,20 @@ FXploreMenu = {}
                 fxploreMap.set.minPar = 1
                 fxploreMap.set.run = function(x)
                     file = mainMenu.fx.folder.get_files.first("name", x[0])
-                    if not file then return print("File not found!".color("red"))
-                    if not file.has_permission("w") then return print("You don't have permission!".color("red"))
+                    if not file then return print("File not found!".color(__errC))
+                    if not file.has_permission("w") then return print("You don't have permission!".color(__errC))
                     i = ""
                     if x.hasIndex(1) and x.hasIndex(2) and x[1] == "-u" and x[2] != "" then
                         hc = package.Depth[0].shell.host_computer
                         hfile = hc.File(x[2])
-                        if not hfile then return print("Couldn't find file!".color("red"))
+                        if not hfile then return print("Couldn't find file!".color(__errC))
                         i = hfile.get_content
                     else
                         i = user_input("Input content:\n")
                     end if
                     out = file.set_content(i)
-                    if out isa string then return print(out.color("red"))
-                    print("Content set!".color("green"))
+                    if out isa string then return print(out.color(__errC))
+                    print("Content set!".color(__retC))
                 end function
             fxploreMap.owoset = {}
                 fxploreMap.owoset.use = "Usage: owoset <b>(file)</b>"
@@ -537,12 +546,12 @@ FXploreMenu = {}
                 fxploreMap.owoset.minPar = 1
                 fxploreMap.owoset.run = function(x)
                     file = mainMenu.fx.folder.get_files.first("name", x[0])
-                    if not file then return print("File not found!".color("red"))
-                    if not file.has_permission("w") then return print("You don't have permission!".color("red"))
+                    if not file then return print("File not found!".color(__errC))
+                    if not file.has_permission("w") then return print("You don't have permission!".color(__errC))
                     i = user_input("Input content:\n")
                     out = file.set_content(i.OwOify)
-                    if out isa string then return print(out.color("red"))
-                    print("Content OwOset!".color("green"))
+                    if out isa string then return print(out.color(__errC))
+                    print("Content OwOset!".color(__retC))
                 end function
             fxploreMap.search = {}
                 fxploreMap.search.use = "Usage: search <b>(file)</b>"
@@ -565,13 +574,13 @@ FXploreMenu = {}
                 fxploreMap.touch.level = "computer"
                 fxploreMap.touch.minPar = 1
                 fxploreMap.touch.run = function(x)
-                    if not x[0].isValidName then return print("Invalid filename!".color("red"))
+                    if not x[0].isValidName then return print("Invalid filename!".color(__errC))
                     path = mainMenu.fx.folder.path
                     if x.hasIndex(1) and x[1] != "" then path = x[1]
-                    if not path.isValidPath then return print("Invalid path!".color("red"))
+                    if not path.isValidPath then return print("Invalid path!".color(__errC))
                     out = mainMenu.fx.computer.touch(path, x[0])
-                    if out isa string then return print(out.color("red"))
-                    print("File created!".color("green"))
+                    if out isa string then return print(out.color(__errC))
+                    print("File created!".color(__retC))
                 end function
             fxploreMap.mkdir = {}
                 fxploreMap.mkdir.use = "Usage: mkdir <b>(name) [path]</b>"
@@ -579,13 +588,13 @@ FXploreMenu = {}
                 fxploreMap.mkdir.level = "computer"
                 fxploreMap.mkdir.minPar = 1
                 fxploreMap.mkdir.run = function(x)
-                    if not x[0].isValidName then return print("Invalid name!".color("red"))
+                    if not x[0].isValidName then return print("Invalid name!".color(__errC))
                     path = mainMenu.fx.folder.path
                     if x[1] != "" then path = x[1]
-                    if not path.isValidPath then return print("Invalid path!".color("red"))
+                    if not path.isValidPath then return print("Invalid path!".color(__errC))
                     out = mainMenu.fx.computer.create_folder(path, x[0])
-                    if out and out != 1 then return print(out.color("red"))
-                    print("Directory created!".color("green"))
+                    if out and out != 1 then return print(out.color(__errC))
+                    print("Directory created!".color(__retC))
                 end function
             fxploreMap.groups = {}
                 fxploreMap.groups.use = "Usage: groups <b>(user)</b>"
@@ -594,7 +603,7 @@ FXploreMenu = {}
                 fxploreMap.groups.minPar = 1
                 fxploreMap.groups.run = function(x)
                     out = mainMenu.fx.computer.groups(x[0])
-                    if not out then return print("User or group not found".color("red"))
+                    if not out then return print("User or group not found".color(__errC))
                     print(out)
                 end function
             fxploreMap.groupadd = {}
@@ -604,8 +613,8 @@ FXploreMenu = {}
                 fxploreMap.groupadd.minPar = 2
                 fxploreMap.groupadd.run = function(x)
                     out = mainMenu.fx.computer.create_group(x[0], x[1])
-                    if out isa string then return print(out.color("red"))
-                    print("Group added to user".color("green"))
+                    if out isa string then return print(out.color(__errC))
+                    print("Group added to user".color(__retC))
                 end function
             fxploreMap.groupdel = {}
                 fxploreMap.groupdel.use = "Usage: groupdel <b>(user) (group)</b>"
@@ -614,8 +623,8 @@ FXploreMenu = {}
                 fxploreMap.groupdel.minPar = 2
                 fxploreMap.groupdel.run = function(x)
                     out = mainMenu.fx.computer.delete_group(x[0], x[1])
-                    if out isa string then return print(out.color("red"))
-                    print("Group deleted from user".color("green"))
+                    if out isa string then return print(out.color(__errC))
+                    print("Group deleted from user".color(__retC))
                 end function
             fxploreMap.useradd = {}
                 fxploreMap.useradd.use = "Usage: useradd <b>(user) [-temp]</b>"
@@ -623,19 +632,19 @@ FXploreMenu = {}
                 fxploreMap.useradd.level = "computer"
                 fxploreMap.useradd.minPar = 1
                 fxploreMap.useradd.run = function(x)
-                    if not x[0].isAlphaNum or x[0].len > 15 then return print("Names must be 15 chars or less and be alphanumeric!".color("red"))
+                    if not x[0].isAlphaNum or x[0].len > 15 then return print("Names must be 15 chars or less and be alphanumeric!".color(__errC))
                     pass = "test"
                     if not x.hasIndex(1) or x[1] != "-temp" then pass = user_input("Please enter a password for user " + x[0] + char(10), 1).trim
-                    if not pass.isAlphaNum or pass.len > 15 then return print("Password must be 15 characters or less and be alphanumeric!".color("red"))
+                    if not pass.isAlphaNum or pass.len > 15 then return print("Password must be 15 characters or less and be alphanumeric!".color(__errC))
                     out = mainMenu.fx.computer.create_user(x[0], pass)
                     if not out isa string and x.hasIndex(1) and x[1] == "-temp" then
                         out = mainMenu.fx.computer.delete_user(x[0], 1)
-                        if out isa string then return print(("Deletion: " + out).color("red"))
-                        return print("Temp user made and deleted!".color("green"))
+                        if out isa string then return print(("Deletion: " + out).color(__errC))
+                        return print("Temp user made and deleted!".color(__retC))
                     else
-                        return print(("Creation: " + out).color("red"))
+                        return print(("Creation: " + out).color(__errC))
                     end if
-                    print("User created!".color("green"))
+                    print("User created!".color(__retC))
                 end function
             fxploreMap.userdel = {}
                 fxploreMap.userdel.use = "Usage: userdel <b>(user) [-r]</b>"
@@ -646,8 +655,8 @@ FXploreMenu = {}
                     del = 0
                     if x.hasIndex(1) and x[1] == "-r" then del = 1
                     out = mainMenu.fx.computer.delete_user(x[0], del)
-                    if out isa string then return print(out.color("red"))
-                    print("User deleted!".color("green"))
+                    if out isa string then return print(out.color(__errC))
+                    print("User deleted!".color(__retC))
                 end function
             fxploreMap.download = {}
                 fxploreMap.download.use = "Usage: download <b>(file/folder) [-a/-r]</b>"
@@ -662,9 +671,9 @@ FXploreMenu = {}
                     downloads = "/root/Downloads"
                     if package.user != "root" then downloads = "/home/" + package.user + "/Downloads"
                     out = scp(mainMenu.fx.shell, filepath, downloads, package.Depth[0].shell)
-                    if not out then return print("SCP: Failed to download file!".color("red"))
-                    if out isa string then return print(out.color("red"))
-                    print("Download complete!".color("green"))
+                    if not out then return print("SCP: Failed to download file!".color(__errC))
+                    if out isa string then return print(out.color(__errC))
+                    print("Download complete!".color(__retC))
                 end function
             fxploreMap.upload = {}
                 fxploreMap.upload.use = "Usage: upload <b>(file/folder absolute path) [new name]</b>"
@@ -672,18 +681,18 @@ FXploreMenu = {}
                 fxploreMap.upload.level = "shell"
                 fxploreMap.upload.minPar = 1
                 fxploreMap.upload.run = function(x)
-                    if x.hasIndex(1) and not x[1].isValidName then return print("Invalid new name!".color("red"))
+                    if x.hasIndex(1) and not x[1].isValidName then return print("Invalid new name!".color(__errC))
                     p = mainMenu.fx.folder.path
                     out = package.Depth[0].shell.scp(x[0], p, mainMenu.fx.shell)
-                    if out isa string then return print(out.color("red"))
+                    if out isa string then return print(out.color(__errC))
                     if x.hasIndex(1) then
                         file = mainMenu.fx.computer.File(p + "/" + x[0].split("/")[-1])
-                        if not file then return print("Couldn't get file!".color("red"))
+                        if not file then return print("Couldn't get file!".color(__errC))
                         out = file.move(p, x[1])
-                        if not out then return print("SCP: Failed to upload file!".color("red"))
-                        if out isa string then return print(out.color("red"))
+                        if not out then return print("SCP: Failed to upload file!".color(__errC))
+                        if out isa string then return print(out.color(__errC))
                     end if
-                    print("Upload complete!".color("green"))
+                    print("Upload complete!".color(__retC))
                 end function
             fxploreMap.launch = {}
                     fxploreMap.launch.use = "Usage: launch <b>(file) [params]</b>"
@@ -692,13 +701,13 @@ FXploreMenu = {}
                     fxploreMap.launch.minPar = 1
                     fxploreMap.launch.run = function(x)
                         file = mainMenu.fx.folder.get_files.first("name", x[0])
-                        if not file then return print("File not found!".color("red"))
-                        print("This will launch a program on the target system and more than likely fuck your whole day!".color("red"))
+                        if not file then return print("File not found!".color(__errC))
+                        print("This will launch a program on the target system and more than likely fuck your whole day!".color(__errC))
                         s = user_input("<b>ARE YOU SURE YOU WANT TO DO THIS?</b> (y/N) ", 0, 1)
-                        if s != "y" then return print("Good choice!".color("green"))
-                        s = user_input("ARE YOU SURE YOU KNOW WHAT YOURE DOING?? (y/N) ".color("red"), 0, 1)
-                        if s != "y" then return print("Good choice!".color("green"))
-                        if not file.is_binary or file.is_folder then return print("File must be a binary!".color("red"))
+                        if s != "y" then return print("Good choice!".color(__retC))
+                        s = user_input("ARE YOU SURE YOU KNOW WHAT YOURE DOING?? (y/N) ".color(__errC), 0, 1)
+                        if s != "y" then return print("Good choice!".color(__retC))
+                        if not file.is_binary or file.is_folder then return print("File must be a binary!".color(__errC))
                         print("Good luck...")
                         mainMenu.BackupGco
                         mainMenu.ClearGco
@@ -745,14 +754,14 @@ FXploreMenu = {}
         end function
         get(mainMenu.toRoot(self.folder))
         files = fs.where("name", x)
-        if files == null or files.len == 0 then return print("File not found!".color("red"))
+        if files == null or files.len == 0 then return print("File not found!".color(__errC))
         return files
         end function
     FXploreMenu.ls = function
         info = "PERMISSIONS OWNER GROUP SIZE FILENAME"
         info = info + char(10) + self.folder.permissions + " " + self.folder.owner + " " + self.folder.group + " " + self.folder.size + " /."
         all = self.folder.get_folders + self.folder.get_files
-        if all.len == 0 then return print((("#"*15) + " Folder Empty " + ("#"*15)).color("red"))
+        if all.len == 0 then return print((("#"*15) + " Folder Empty " + ("#"*15)).color(__errC))
         for each in all
             isf = ""
             isb = ""
@@ -814,7 +823,7 @@ FXploreMenu = {}
                 f=@self.cmd[userChoice[0].lower].run
                 if userChoice.len > 1 then f(userChoice[1:]) else f
             else
-                print("Invalid command!".color("red"))
+                print("Invalid command!".color(__errC))
             end if
         end while
         end function
@@ -833,7 +842,7 @@ Menu = {}
             print("Initializing...")
             if program_path.split("/")[-1].is_match("dddd") then package.thisC.File(current_path + "/dddd").move(current_path, "unity")
             package.unity = package.thisC.File(current_path + "/unity")
-            if not package.unity then exit("Unity was not found and is likely improperly named, please try again!".color("red"))
+            if not package.unity then exit("Unity was not found and is likely improperly named, please try again!".color(__errC))
             package.user = active_user
             package.exePath = current_path
             package.Sig = "<size=""40px"">Unity"
@@ -853,7 +862,7 @@ Menu = {}
             if not amap then
                 print("Alias map not found, creating new alias map...")
                 out = package.thisC.touch(current_path, "alias.map")
-                if out isa string then exit(("Alias map creation " + out).color("red"))
+                if out isa string then exit(("Alias map creation " + out).color(__errC))
                 amap = package.thisC.File(current_path + "/alias.map")
             end if
             package.aliasmap = amap
@@ -861,7 +870,7 @@ Menu = {}
             if not vdb then
                 print("Database not found, creating new database...")
                 out = package.thisC.create_folder(current_path, "VDB")
-                if out isa string then exit(("Database creation " + out).color("red"))
+                if out isa string then exit(("Database creation " + out).color(__errC))
                 vdb = package.thisC.File(current_path + "/VDB")
             end if
             package.VDB = vdb
@@ -869,7 +878,7 @@ Menu = {}
             if not memdb then
                 print("Memory database not found, creating new database...")
                 out = package.thisC.touch(current_path + "/VDB", "mem.db")
-                if out isa string then exit(("Memory creation " + out).color("red"))
+                if out isa string then exit(("Memory creation " + out).color(__errC))
                 memdb = package.thisC.File(current_path + "/VDB/mem.db")
             end if
             package.MemDb = memdb
@@ -882,7 +891,7 @@ Menu = {}
             if unsecdb.len == 0 then
                 print("Target database not found, creating new database...")
                 out = package.thisC.touch(current_path + "/VDB", "unsec0.db")
-                if out isa string then exit(("Target creation " + out).color("red"))
+                if out isa string then exit(("Target creation " + out).color(__errC))
                 unsecdb.push(package.thisC.File(current_path + "/VDB/unsec0.db"))
             end if
             package.UnsecDb = unsecdb
@@ -922,7 +931,7 @@ Menu = {}
                     address = x[0]
                     if x[0] == "-r" then address = mainMenu.rndIp
                     if not is_valid_ip(address) then address = nslookup(address)
-                    if not is_valid_ip(address) then return print("That isn't a valid IP, TF are you doing?".color("red"))
+                    if not is_valid_ip(address) then return print("That isn't a valid IP, TF are you doing?".color(__errC))
                     mainMenu.portscan(address)
                 end function
             mainMap.whois = {}
@@ -934,8 +943,8 @@ Menu = {}
                     address = x[0]
                     if address == "-r" then address = mainMenu.rndIp
                     if not is_valid_ip(address) then address = nslookup(address)
-                    if not is_valid_ip(address) then return print("That isn't a valid IP, TF are you doing?".color("red"))
-                    print("Address: " + address.color("green"))
+                    if not is_valid_ip(address) then return print("That isn't a valid IP, TF are you doing?".color(__errC))
+                    print("Address: " + address.color(__retC))
                     print(whois(address))
                 end function
             mainMap.routerscan = {}
@@ -947,8 +956,8 @@ Menu = {}
                     address = x[0]
                     if x[0] == "-r" then address = mainMenu.rndIp
                     if not is_valid_ip(address) then address = nslookup(address)
-                    if not is_valid_ip(address) then return print("That isn't a valid IP, TF are you doing?".color("red"))
-                    print("Address: " + address.color("green"))
+                    if not is_valid_ip(address) then return print("That isn't a valid IP, TF are you doing?".color(__errC))
+                    print("Address: " + address.color(__retC))
                     mainMenu.routerscan(address)
                 end function
             mainMap.smtpdump = {}
@@ -958,7 +967,7 @@ Menu = {}
                 mainMap.smtpdump.alias = []
                 mainMap.smtpdump.run = function(x)
                     address = x[0]
-                    if not is_valid_ip(address) then return print("That isn't a valid IP".color("red"))
+                    if not is_valid_ip(address) then return print("That isn't a valid IP".color(__errC))
                     port = 25
                     if x.hasIndex(1) and typeof(x[1].to_int) == "number" then port = x[1].to_int
                     pubIp = address
@@ -970,8 +979,8 @@ Menu = {}
                         pubIp = package.thisC.public_ip
                     end if
                     dump = cr.smtp_user_list(address, port)
-                    if dump isa string then return print(dump.color("red"))
-                    out = "No users found!".color("red")
+                    if dump isa string then return print(dump.color(__errC))
+                    out = "No users found!".color(__errC)
                     if dump.len > 1 then
                         out = "Username Email"
                         for each in dump
@@ -1020,7 +1029,7 @@ Menu = {}
                     cr = mainMenu.tempCr
                     if cr isa string then return print(cr)
                     cr = cr.lib
-                    if hc isa string then return print(hc.color("red"))
+                    if hc isa string then return print(hc.color(__errC))
                     info = "SEL DEVICE CHIPSET MONITOR"
                     i = 0
                     devs = network_devices(hc).split(char(10)).where("contains", "wlan")
@@ -1030,13 +1039,13 @@ Menu = {}
                     end for
                     print(format_columns(info))
                     i = user_input("Select a device: ").to_int
-                    if i isa string or (i - 1) < 0 then return print("Invalid selection!".color("red"))
+                    if i isa string or (i - 1) < 0 then return print("Invalid selection!".color(__errC))
                     dev = devs[(i - 1)].split(" ")[0]
                     output = cr.airmon("start", dev)
-                    if not output then return print("Device not found!".color("red"))
-                    if output isa string then return print(output.color("red"))
+                    if not output then return print("Device not found!".color(__errC))
+                    if output isa string then return print(output.color(__errC))
                     wlans = wifi_networks(hc, dev)
-                    if not wlans then return print("No wifi networks found!".color("red"))
+                    if not wlans then return print("No wifi networks found!".color(__errC))
                     info = "SEL BSSID PWR ESSID"
                     i = 0
                     for wlan in wlans
@@ -1045,22 +1054,22 @@ Menu = {}
                     end for
                     print(format_columns(info))
                     i = user_input("Select a wifi: ").to_int
-                    if i isa string or (i - 1) < 0 then return print("Invalid selection!".color("red"))
+                    if i isa string or (i - 1) < 0 then return print("Invalid selection!".color(__errC))
                     wifi = wlans[(i - 1)].split(" ")
                     acks = ceil(300000/(wifi[1][:-1].to_int + 15))+1
                     print("<color=green>Waiting for " + acks + " acks...</color>")
                     res = cr.aireplay(wifi[0], wifi[2], acks)
-                    if res isa string then return print(res.color("red"))
+                    if res isa string then return print(res.color(__errC))
                     output = cr.airmon("stop", dev)
-                    if not output then return print("Device not found!".color("red"))
+                    if not output then return print("Device not found!".color(__errC))
                     file = package.Depth[0].shell.host_computer.File(current_path + "/file.cap")
                     key = cr.aircrack(file.path)
-                    if not key then return print("Couldn't crack key!".color("red"))
+                    if not key then return print("Couldn't crack key!".color(__errC))
                     file.delete
                     print("Key found! Key: " + key)
                     status = connect_wifi(hc, dev, wifi[0], wifi[2], key)
-                    if status isa string then return print(status.color("red"))
-                    print("Wi-Fi connected!".color("green"))
+                    if status isa string then return print(status.color(__errC))
+                    print("Wi-Fi connected!".color(__retC))
                 end function
             mainMap.aptget = {}
                 mainMap.aptget.use = "Usage: aptget <b>(-u/-i/-f/-l/-a/-r) [options]</b>"
@@ -1068,15 +1077,15 @@ Menu = {}
                 mainMap.aptget.minPar = 1
                 mainMap.aptget.alias = []
                 mainMap.aptget.run = function(x)
-                    if active_user != "root" then return print("Can't use apt system as non root user!".color("red"))
+                    if active_user != "root" then return print("Can't use apt system as non root user!".color(__errC))
                     aptclient = package.Depth[package.Session].Ac.lib
                     if x[0] == "-u" then
                         print("Updating package lists...")
                         output = aptclient.update
                         if output then return print(output)
-                        print("Update complete!".color("green"))
+                        print("Update complete!".color(__retC))
                     else if x[0] == "-i" then
-                        if not x.hasIndex(1) then return print("No file specified!".color("red"))
+                        if not x.hasIndex(1) then return print("No file specified!".color(__errC))
                         print("Reading package lists...")
                         print("Downloading " + x[1])
                         output = ""
@@ -1085,25 +1094,25 @@ Menu = {}
                         else
                             output = aptclient.install(x[1])
                         end if
-                        if output == true then return print((x[1] + " installed").color("green"))
+                        if output == true then return print((x[1] + " installed").color(__retC))
                         print(output)
                     else if x[0] == "-f" then
-                        if not x.hasIndex(1) then return print("No file specified!".color("red"))
+                        if not x.hasIndex(1) then return print("No file specified!".color(__errC))
                         print(aptclient.search(x[1]))
                     else if x[0] == "-l" then
-                        if not x.hasIndex(1) then return print("No repo given!".color("red"))
+                        if not x.hasIndex(1) then return print("No repo given!".color(__errC))
                         print(aptclient.show(x[1]))
                     else if x[0] == "-a" then
-                        if not x.hasIndex(1) then return print("No address given!".color("red"))
+                        if not x.hasIndex(1) then return print("No address given!".color(__errC))
                         port = 1542
                         if x.hasIndex(2) then port = x[2]
                         output = aptclient.add_repo(x[1], port)
-                        if output then return print(output.color("red"))
+                        if output then return print(output.color(__errC))
                         print("Repository " + x[1] + " added succesfully.\nLaunch apt with the -u option to apply the changes")
                     else if x[0] == "-r" then
-                        if not x.hasIndex(1) then return print("No address given!".color("red"))
+                        if not x.hasIndex(1) then return print("No address given!".color(__errC))
                         output = aptclient.del_repo(x[1])
-                        if output then return print(output.color("red"))
+                        if output then return print(output.color(__errC))
                         print("Repository " + x[1] + " removed succesfully.\nLaunch apt with the -u option to apply the changes")
                     end if
                 end function
@@ -1113,7 +1122,7 @@ Menu = {}
                 mainMap.update.minPar = 0
                 mainMap.update.alias = []
                 mainMap.update.run = function(x)
-                    if not package.Session == 0 then return print("Must be run in session 0!".color("red"))
+                    if not package.Session == 0 then return print("Must be run in session 0!".color(__errC))
                     mainMenu.updateLibs
                     mainMenu.incMx
                 end function
@@ -1163,7 +1172,7 @@ Menu = {}
                             guest.set_group("guest", 1)
                         end if
                     end if
-                    print("Operation complete!".color("green"))
+                    print("Operation complete!".color(__retC))
                 end function
             mainMap.ifconfig = {}
                 mainMap.ifconfig.use = "Usage: ifconfig <b>[-b/-t/-bt]</b>"
@@ -1186,15 +1195,15 @@ Menu = {}
                         end for
                         print(format_columns(info))
                         i = user_input("Select ethernet card: ", 0, 1).to_int
-                        if i isa string or (i - 1) < 0 then return print("Invalid selection!".color("red"))
+                        if i isa string or (i - 1) < 0 then return print("Invalid selection!".color(__errC))
                         dev = devices[i - 1]
                         add = user_input("Set local IP: ")
-                        if not is_valid_ip(add) or not is_lan_ip(add) then return print("That was not a valid lan IP".color("red"))
+                        if not is_valid_ip(add) or not is_lan_ip(add) then return print("That was not a valid lan IP".color(__errC))
                         gate = user_input("Set gateway address: ")
-                        if not is_valid_ip(gate) or not is_lan_ip(add) then return print("That was not a valid lan IP".color("red"))
+                        if not is_valid_ip(gate) or not is_lan_ip(add) then return print("That was not a valid lan IP".color(__errC))
                         out = connect_ethernet(c, dev, add, gate)
-                        if out isa string then return print(out.color("red"))
-                        print("Config set!".color("green"))
+                        if out isa string then return print(out.color(__errC))
+                        print("Config set!".color(__retC))
                     else
                         rtr = get_router
                         if is_network_active(c) then
@@ -1204,7 +1213,7 @@ Menu = {}
                                 print("\nConnected to ethernet:\nPublic IP: " + c.public_ip + "\nLocal IP: " + c.local_ip + "\nGateway: " + network_gateway(c))
                             end if
                         else
-                            print("\n" + "Not connected to any network.".color("red"))
+                            print("\n" + "Not connected to any network.".color(__errC))
                         end if
                     end if
                 end function
@@ -1228,10 +1237,10 @@ Menu = {}
                     end for
                     print(format_columns(info))
                     i = user_input("Enter wifi card: ", 0, 1).to_int
-                    if i isa string or (i - 1) < 0 then return print("Invalid selection!".color("red"))
+                    if i isa string or (i - 1) < 0 then return print("Invalid selection!".color(__errC))
                     dev = devs[i - 1].split(" ")[0]
                     wlans = wifi_networks(c, dev)
-                    if wlans == null then return print("No networks found or there was an error".color("red"))
+                    if wlans == null then return print("No networks found or there was an error".color(__errC))
                     inf = "SEL BSSID PWR ESSID"
                     i = 1
                     for wlan in wlans
@@ -1240,12 +1249,12 @@ Menu = {}
                     end for
                     print(format_columns(inf))
                     i = user_input("Select a wifi: ", 0, 1).to_int
-                    if i isa string or (i - 1) < 0 then return print("Invalid selection!".color("red"))
+                    if i isa string or (i - 1) < 0 then return print("Invalid selection!".color(__errC))
                     s = (i - 1)
                     pass = user_input("Enter wifi password: ", 1)
                     out = connect_wifi(c, dev, wlans[s].split(" ")[0], wlans[s].split(" ")[2], pass)
-                    if out isa string then return print(out.color("red"))
-                    print("WiFi Connected!".color("green"))
+                    if out isa string then return print(out.color(__errC))
+                    print("WiFi Connected!".color(__retC))
                 end function
             mainMap.monitor = {}
                 mainMap.monitor.use = "Usage: monitor <b>[bssid] [essid] [password]</b>"
@@ -1268,10 +1277,10 @@ Menu = {}
                         end for
                         print(format_columns(info))
                         i = user_input("Enter wifi card: ", 0, 1).to_int
-                        if i isa string or (i - 1) < 0 then return print("Invalid selection!".color("red"))
+                        if i isa string or (i - 1) < 0 then return print("Invalid selection!".color(__errC))
                         dev = devices[i - 1].split(" ")[0]
                         wlans = wifi_networks(c, dev)
-                        if wlans == null then return print("No networks found or there was an error".color("red"))
+                        if wlans == null then return print("No networks found or there was an error".color(__errC))
                         inf = "SEL BSSID PWR ESSID"
                         i = 1
                         for wlan in wlans
@@ -1280,7 +1289,7 @@ Menu = {}
                         end for
                         print(format_columns(inf))
                         i = user_input("Select a wifi: ", 0, 1).to_int
-                        if i isa string or (i - 1) < 0 then return print("Invalid selection!".color("red"))
+                        if i isa string or (i - 1) < 0 then return print("Invalid selection!".color(__errC))
                         s = (i - 1)
                         bss = wlans[s].split(" ")[0]
                         ess = wlans[s].split(" ")[2]
@@ -1295,18 +1304,18 @@ Menu = {}
                     rc.touch("/lib", "rep")
                     if (rc.File("/lib/libhttp.so") == null) then
                         out = rc.File("/lib/rep").move("/lib", "libhttp.so")
-                        if out isa string then return print(out.color("red"))
+                        if out isa string then return print(out.color(__errC))
                         rc.File("/lib/libhttp.so").rename("rep")
                     end if
                     out = rc.File("/lib/rep").move("/lib", "kernel_router.so")
-                    if out isa string then return print(out.color("red"))
+                    if out isa string then return print(out.color(__errC))
                     kr = rc.File("/lib/kernel_router.so")
                     print("Listening for ingress...")
                     while not kr.is_binary
                     end while
                     out = c.connect_wifi(dev, bss, ess, pass)
                     if out isa string then return print(out);
-                    print("Ingress detected!".color("red"))
+                    print("Ingress detected!".color(__errC))
                     print("See ya later stinky!".color("purple"))
                 end function
             mainMap.clearlog = {}
@@ -1315,7 +1324,7 @@ Menu = {}
                 mainMap.clearlog.minPar = 0
                 mainMap.clearlog.alias = []
                 mainMap.clearlog.run = function(x)
-                    if x[0] == "-t" and package.Depth[package.Session].target.obj == "" then return print("Need a full target to clear target logs!".color("red"))
+                    if x[0] == "-t" and package.Depth[package.Session].target.obj == "" then return print("Need a full target to clear target logs!".color(__errC))
                     mainMenu.cl(x[0])
                 end function
             mainMap.fxplore = {}
@@ -1327,7 +1336,7 @@ Menu = {}
                     obj = package.Depth[package.Session].shell
                     if x[0] == "-t" then
                         tgt = package.Depth[package.Session].target
-                        if tgt.obj == "" then return print("You need to select a full target first!".color("red"))
+                        if tgt.obj == "" then return print("You need to select a full target first!".color(__errC))
                         obj = package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
                     end if
                     mainMenu.fx = FXploreMenu.init(obj)
@@ -1357,10 +1366,10 @@ Menu = {}
                 mainMap.kill.alias = []
                 mainMap.kill.run = function(x)
                     kill = function(c, pid)
-                        if not typeof(pid.to_int) == "number" then return print("Thats not a process number!".color("red"))
+                        if not typeof(pid.to_int) == "number" then return print("Thats not a process number!".color(__errC))
                         output = close_program(c, pid.to_int)
-                        if output isa string then return print(output.color("red"))
-                        return print("Closed process".color("green"))
+                        if output isa string then return print(output.color(__errC))
+                        return print("Closed process".color(__retC))
                     end function
                     pid = x[0]
                     c = package.thisC
@@ -1370,7 +1379,7 @@ Menu = {}
                     end if
                     if pid == "-a" then
                         procs = show_procs(c).split(char(10))[1:]
-                        if procs.len < 1 then return print("No procs found!".color("red"))
+                        if procs.len < 1 then return print("No procs found!".color(__errC))
                         for proc in procs.wherenot("contains", "Xorg").wherenot("contains", "kernel_task").wherenot("contains", "Chat")
                             kill(c, proc.split(" ")[1])
                         end for
@@ -1390,10 +1399,10 @@ Menu = {}
                         if c isa string then return print(c)
                     end if
                     pass = user_input("Changing password for user " + x[0] + "\nNew password: ", 1).trim
-                    if not pass.isAlphaNum or pass.len > 15 then return print("Password must be 15 characters or less and be alphanumeric!".color("red"))
+                    if not pass.isAlphaNum or pass.len > 15 then return print("Password must be 15 characters or less and be alphanumeric!".color(__errC))
                     output = change_password(c, x[0], pass)
-                    if output isa string then return print(output.color("red"))
-                    print("Password set!".color("green"))
+                    if output isa string then return print(output.color(__errC))
+                    print("Password set!".color(__retC))
                 end function
             mainMap.sudo = {}
                 mainMap.sudo.use = "Usage: sudo <b>(user/-s)</b>"
@@ -1404,10 +1413,10 @@ Menu = {}
                     user = x[0]
                     if x[0] == "-s" then user = "root"
                     shell = get_shell(user, user_input("Password: ", 1))
-                    if not shell then return print("Something went wrong...".color("red"))
+                    if not shell then return print("Something went wrong...".color(__errC))
                     hc = package.thisC
                     mainMenu.fakeLib(shell, hc, "SUDO")
-                    print("Sudo successful!".color("green"))
+                    print("Sudo successful!".color(__retC))
                 end function
             mainMap.connect = {}
                 mainMap.connect.use = "Usage: connect <b>(ssh/ftp) (<user@web/ip>/-s) [port]/[-t]</b>"
@@ -1418,19 +1427,19 @@ Menu = {}
                     if x[0] != "ssh" and x[0] != "ftp" then return print("Invalid connection type!")
                     if x[0] == "ssh" and x[1] == "-s" then
                         out = package.Depth[0].shell.scp(package.libssh.path, "/lib/", package.Depth[package.Session].shell)
-                        if out isa string then return print(out.color("red"))
+                        if out isa string then return print(out.color(__errC))
                         sshd = include_lib("/lib/libssh.so")
-                        if not sshd then return print("I couldn't find the lib!".color("red"))
+                        if not sshd then return print("I couldn't find the lib!".color(__errC))
                         out = sshd.install_service
-                        if out isa string then print(out.color("red"))
-                        return print(("SSH server installed on " + package.thisC.public_ip + "-" + package.thisC.local_ip).color("green"))
+                        if out isa string then print(out.color(__errC))
+                        return print(("SSH server installed on " + package.thisC.public_ip + "-" + package.thisC.local_ip).color(__retC))
                     end if
                     if not x[1].matches("@") then return print("Invalid data!")
                     info = x[1].split("@")
                     user = info[0]
                     address = info[1]
                     if not is_valid_ip(address) then address = nslookup(address)
-                    if not is_valid_ip(address) then return print("That isn't a valid IP, TF are you doing?".color("red"))
+                    if not is_valid_ip(address) then return print("That isn't a valid IP, TF are you doing?".color(__errC))
                     pass = user_input("Enter password: ", 1)
                     port = 22
                     if x[0] == "ftp" then port = 21
@@ -1439,14 +1448,14 @@ Menu = {}
                     if (x.hasIndex(2) and x[2] == "-t") or (x.hasIndex(3) and x[3] == "-t") then
                         tgt = package.Depth[package.Session].target
                         s = package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
-                        if not s isa __shell and typeof(s) != "ftpShell" then return print("Target must be a shell!".color("red"))
+                        if not s isa __shell and typeof(s) != "ftpShell" then return print("Target must be a shell!".color(__errC))
                     end if
                     shell = connect_service(s, address, port, user, pass, x[0])
-                    if shell isa string then return print(shell.color("red"))
-                    if not shell then return print("Connection failed".color("red"))
+                    if shell isa string then return print(shell.color(__errC))
+                    if not shell then return print("Connection failed".color(__errC))
                     hc = host_computer(shell)
                     access = mainMenu.fakeLib(shell, hc, x[0].upper)
-                    print(("Saved " + access + " " + x[0].upper + "!").color("green"))
+                    print(("Saved " + access + " " + x[0].upper + "!").color(__retC))
                 end function
             mainMap.sniff = {}
                 mainMap.sniff.use = "Usage: sniff <b>[-e]</b>"
@@ -1458,8 +1467,8 @@ Menu = {}
                     enc = 0
                     if x and x.hasIndex(0) and x[0] == "-e" then enc = 1
                     out = mx.sniffer(enc)
-                    if out isa string then return print(("It smell like bitch in here...".color("red")) + "\n" + out)//TODO Add save down method
-                    return print("I got nothin...".color("green"))
+                    if out isa string then return print(("It smell like bitch in here...".color(__errC)) + "\n" + out)//TODO Add save down method
+                    return print("I got nothin...".color(__retC))
                 end function
             mainMap.pwget = {}
                 mainMap.pwget.use = "Usage: pwget <b>[-t]</b>"
@@ -1471,11 +1480,11 @@ Menu = {}
                     if x and x[0] == "-t" then
                         tgt = package.Depth[package.Session].target
                         shell = package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
-                        if not shell isa __shell and typeof(shell) != "ftpShell" then return print("Target must be a shell!".color("red"))
+                        if not shell isa __shell and typeof(shell) != "ftpShell" then return print("Target must be a shell!".color(__errC))
                     end if
                     c = host_computer(shell)
                     getD = mainMenu.getDrop(File(host_computer(shell), "/"))
-                    if not getD then return print("Couldn't find a place to drop!".color("red"))
+                    if not getD then return print("Couldn't find a place to drop!".color(__errC))
                     loc = getD.path
                     n = 0
                     res = touch(c, loc, n + ".dat")
@@ -1488,15 +1497,15 @@ Menu = {}
                     f = File(c, loc + "/" + n +".dat")
                     s = "get_custom_object.ret=""import"+"_code(""/etc/passwd"")"""
                     res = set_content(f, s)
-                    if res isa string then return print(("Set Content: " + res).color("red"))
+                    if res isa string then return print(("Set Content: " + res).color(__errC))
                     res = build(shell, loc + "/" + n + ".dat", loc)
-                    if res != "" then return print(("Build: " + res).color("red"))
+                    if res != "" then return print(("Build: " + res).color(__errC))
                     launch(shell, loc + "/" + n)
-                    ret = "File empty! Note: Routers are always empty.".color("red")
+                    ret = "File empty! Note: Routers are always empty.".color(__errC)
                     if package.hasIndex("ret") and not isNullOrEmpty(package.ret) then ret = package.ret
                     l = []
                     for line in ret.split(char(10))
-                        l.push(line.color("green"))
+                        l.push(line.color(__retC))
                     end for
                     ret = l.join(char(10))
                     print(ret)
@@ -1526,27 +1535,27 @@ Menu = {}
                         tnet = include_lib("/lib/libtrafficnet.so")
                         if not tnet then
                             out = package.Depth[0].shell.scp(package.libtraffic.path, current_path, session.shell)
-                            if out isa string then return print(out.color("red"))
+                            if out isa string then return print(out.color(__errC))
                             tnet = include_lib(current_path + "/libtrafficnet.so")
-                            if not tnet then return print("I couldn't find the lib!".color("red"))
+                            if not tnet then return print("I couldn't find the lib!".color(__errC))
                         end if
                         dev.tnet = tnet
-                        print("Traffic net is saved!".color("green"))
+                        print("Traffic net is saved!".color(__retC))
                         return
                     end if
                     tgt = session.target
-                    if tgt.pub == "" or tgt.loc == "" then return print("Select a target traffic net device!".color("red"))
+                    if tgt.pub == "" or tgt.loc == "" then return print("Select a target traffic net device!".color(__errC))
                     tnet = package.Netmap[tgt.pub].devices[tgt.loc].tnet
-                    if not tnet then return print("There is no traffic net loaded on this system!".color("red"))
+                    if not tnet then return print("There is no traffic net loaded on this system!".color(__errC))
                     if x[0] == "-l" then
                         out = tnet.camera_link_system
-                        if out isa string then return print(out.color("red"))
-                        return print("Camera system linked successfully!".color("green"))
+                        if out isa string then return print(out.color(__errC))
+                        return print("Camera system linked successfully!".color(__retC))
                     else if x[0] == "-v" then
-                        if not x.hasIndex(1) or not x.hasIndex(2) then return print("No plate or password indicated!".color("red"))
+                        if not x.hasIndex(1) or not x.hasIndex(2) then return print("No plate or password indicated!".color(__errC))
                         out = tnet.locate_vehicle(x[1], x[2])
-                        if out isa string then return print(out.color("red"))
-                        return print("Plate located!".color("green"))
+                        if out isa string then return print(out.color(__errC))
+                        return print("Plate located!".color(__retC))
                     else if x[0] == "-i" then
                         out = tnet.get_credentials_info
                         return print(out)
@@ -1567,10 +1576,10 @@ Menu = {}
                 mainMap.decipher.minPar = 1
                 mainMap.decipher.alias = []
                 mainMap.decipher.run = function(x)
-                    if x[0].len < 32 or not x[0].isAlphaNum then return print("Not an md5!".color("red"))
+                    if x[0].len < 32 or not x[0].isAlphaNum then return print("Not an md5!".color(__errC))
                     dec = decipher(package.Cr.lib, x[0])
-                    if dec == null then return print("Couldn't decipher hash!".color("red"))
-                    print(dec.color("green"))
+                    if dec == null then return print("Couldn't decipher hash!".color(__errC))
+                    print(dec.color(__retC))
                 end function
             mainMap.sel = {}
                 mainMap.sel.use = "Usage: sel <b>(-n/-d/-c/-l/-o) [selection]</b>"
@@ -1582,31 +1591,31 @@ Menu = {}
                     cat = null
                     next = ""
                     if x[0] == "-n" then
-                        if package.Netmap.len == 0 then return print("I don't know any networks yet!".color("red"))
+                        if package.Netmap.len == 0 then return print("I don't know any networks yet!".color(__errC))
                         cat = package.Netmap
                         next = "devices"
                         tgt.loc = ""
                         tgt.lib = ""
                         tgt.obj = ""
                     else if x[0] == "-d" then
-                        if tgt.pub == "" then return print("You haven't selected a target network yet!".color("red"))
-                        if not package.Netmap.hasIndex(tgt.pub) or package.Netmap[tgt.pub].devices.len == 0 then return print("I don't know any devices in that network!".color("red"))
+                        if tgt.pub == "" then return print("You haven't selected a target network yet!".color(__errC))
+                        if not package.Netmap.hasIndex(tgt.pub) or package.Netmap[tgt.pub].devices.len == 0 then return print("I don't know any devices in that network!".color(__errC))
                         cat = package.Netmap[tgt.pub].devices
                         next = "libs"
                         tgt.lib = ""
                         tgt.obj = ""
                     else if x[0] == "-l" then
-                        if tgt.pub == "" then return print("You haven't selected a target network yet!".color("red"))
-                        if tgt.loc == "" then return print("You haven't selected a target device yet!".color("red"))
-                        if not package.Netmap[tgt.pub].devices.hasIndex(tgt.loc) or package.Netmap[tgt.pub].devices[tgt.loc].libs.len == 0 then return print("I don't know any libs on that device!".color("red"))
+                        if tgt.pub == "" then return print("You haven't selected a target network yet!".color(__errC))
+                        if tgt.loc == "" then return print("You haven't selected a target device yet!".color(__errC))
+                        if not package.Netmap[tgt.pub].devices.hasIndex(tgt.loc) or package.Netmap[tgt.pub].devices[tgt.loc].libs.len == 0 then return print("I don't know any libs on that device!".color(__errC))
                         cat = package.Netmap[tgt.pub].devices[tgt.loc].libs
                         next = "objects"
                         tgt.obj = ""
                     else if x[0] == "-o" then
-                        if tgt.pub == "" then return print("You haven't selected a target network yet!".color("red"))
-                        if tgt.loc == "" then return print("You haven't selected a target device yet!".color("red"))
-                        if tgt.lib == "" then return print("You haven't selected a target lib yet!".color("red"))
-                        if not package.Netmap[tgt.pub].devices[tgt.loc].libs.hasIndex(tgt.lib) or package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects.len == 0 then return print("I don't have any objs from that lib!".color("red"))
+                        if tgt.pub == "" then return print("You haven't selected a target network yet!".color(__errC))
+                        if tgt.loc == "" then return print("You haven't selected a target device yet!".color(__errC))
+                        if tgt.lib == "" then return print("You haven't selected a target lib yet!".color(__errC))
+                        if not package.Netmap[tgt.pub].devices[tgt.loc].libs.hasIndex(tgt.lib) or package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects.len == 0 then return print("I don't have any objs from that lib!".color(__errC))
                         cat = package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects
                     else if x[0] == "-c" then
                         hc = package.thisC
@@ -1628,7 +1637,7 @@ Menu = {}
                         tgt.obj = ""
                         return
                     else
-                        return print("Invalid option!".color("red"))
+                        return print("Invalid option!".color(__errC))
                     end if
                     i = 0
                     l = []
@@ -1651,11 +1660,11 @@ Menu = {}
                         end if
                     end for
                     info = format_columns(info)
-                    if x[0] == "-o" then info = info.replace("shell", "shell".color("red")).replace("computer", "computer".color("yellow")).replace("file", "file".color("green"))
+                    if x[0] == "-o" then info = info.replace("shell", "shell".color(__errC)).replace("computer", "computer".color("yellow")).replace("file", "file".color(__retC))
                     print(info)
                     s = null
                     if x.hasIndex(1) and typeof(x[1].to_int) == "number" then s = x[1] else s = user_input("Selection: ")
-                    if s == "cancel" or s == "" or typeof(s.to_int) != "number" or not l.hasIndex(s.to_int-1) then return print("Invalid selection!".color("red"))
+                    if s == "cancel" or s == "" or typeof(s.to_int) != "number" or not l.hasIndex(s.to_int-1) then return print("Invalid selection!".color(__errC))
                     res = l[s.to_int-1]
                     if x[0] == "-n" then tgt.pub = res
                     if x[0] == "-d" then tgt.loc = res
@@ -1668,12 +1677,12 @@ Menu = {}
                 mainMap.settype.minPar = 1
                 mainMap.settype.alias = []
                 mainMap.settype.run = function(x)
-                    if x[0] != "router" and x[0] != "device" and x[0] != "switch" then return print("Invalid type!".color("red"))
+                    if x[0] != "router" and x[0] != "device" and x[0] != "switch" then return print("Invalid type!".color(__errC))
                     tgt = package.Depth[package.Session].target
-                    if tgt.loc == "" then return print("You must select a device first!".color("red"))
+                    if tgt.loc == "" then return print("You must select a device first!".color(__errC))
                     dev = package.Netmap[tgt.pub].devices[tgt.loc]
                     dev.type = x[0]
-                    print(("Type set to " + x[0]).color("green"))
+                    print(("Type set to " + x[0]).color(__retC))
                 end function
             mainMap.netmap = {}
                 mainMap.netmap.use = "Usage: netmap"
@@ -1728,7 +1737,7 @@ Menu = {}
                 mainMap.rlib.alias = []
                 mainMap.rlib.run = function(x)
                     tgt = package.Depth[package.Session].target
-                    if tgt.pub == "" or tgt.loc == "" then return print("No net device selected, select one first!".color("red"))
+                    if tgt.pub == "" or tgt.loc == "" then return print("No net device selected, select one first!".color(__errC))
                     dev = package.Netmap[tgt.pub].devices[tgt.loc]
                     address = tgt.loc
                     portN = 0
@@ -1741,13 +1750,13 @@ Menu = {}
                         print(format_columns(info))
                         portN = null
                         if x and x.hasIndex(0) and typeof(x[0].to_int) == "number" then portN = x[0].to_int else portN = user_input("Select a port: ").to_int
-                        if portN isa string then return print(("This isn't a port: " + portN).color("red"))
-                        if portN == 0 and dev.type != "router" and dev.type != "switch" then return print("Invalid port for non router!".color("red"))
+                        if portN isa string then return print(("This isn't a port: " + portN).color(__errC))
+                        if portN == 0 and dev.type != "router" and dev.type != "switch" then return print("Invalid port for non router!".color(__errC))
                     end if
                     if dev.type == "device" and portN == 0 and package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport") then
                         portN = user_input("Override enabled, enter port to pull from: ").to_int
                     else if dev.type == "device" and portN == 0 then
-                        return print("No ports to grab from!".color("red"))
+                        return print("No ports to grab from!".color(__errC))
                     end if
                     print("Scanning " + tgt.pub + "-" + tgt.loc + " at port " + portN + "...")
                     net_session = package.Depth[package.Session].Mx.lib.net_use(address, portN)
@@ -1758,7 +1767,7 @@ Menu = {}
                             wait(i)
                         end while
                     end if
-                    if not net_session then return print("Couldn't establish net session".color("red"))
+                    if not net_session then return print("Couldn't establish net session".color(__errC))
                     dev.netsession = net_session
                     metaLib = net_session.dump_lib
                     if dev.libs.hasIndex(metaLib.lib_name) then
@@ -1766,7 +1775,7 @@ Menu = {}
                         print("[old] " + oldLib.lib.lib_name + " v" + oldLib.ver)
                         print("[new] " + metaLib.lib_name + " v" + metaLib.version)
                         i = user_input("Overwrite " + metaLib.lib_name + "@" + tgt.pub + ":" + tgt.loc + "? (y/N)\n")
-                        if i != "y" then return print(("Keeping " + oldLib.lib.lib_name + " v" + oldLib.ver + "!").color("green"))
+                        if i != "y" then return print(("Keeping " + oldLib.lib.lib_name + " v" + oldLib.ver + "!").color(__retC))
                     end if
                     lib = new Library
                     lib.loc = "remote"
@@ -1774,7 +1783,7 @@ Menu = {}
                     lib.ver = metaLib.version
                     lib.objects = {}
                     dev.libs[metaLib.lib_name] = lib
-                    print(("Grabbed " + metaLib.lib_name + " v" + metaLib.version).color("green"))
+                    print(("Grabbed " + metaLib.lib_name + " v" + metaLib.version).color(__retC))
                 end function
             mainMap.llib = {}
                 mainMap.llib.use = "Usage: llib <b>[libname]</b>"
@@ -1808,7 +1817,7 @@ Menu = {}
                             print("[new] " + metaLib.lib_name + " v" + metaLib.version)
                             i = user_input("Overwrite " + metaLib.lib_name + "@" + pubIp + ":" + locIp + "? (y/N)\n")
                             if i != "y" then
-                                print(("Keeping " + metaLib.lib_name + " v" + oldLib.ver + "!").color("green"))
+                                print(("Keeping " + metaLib.lib_name + " v" + oldLib.ver + "!").color(__retC))
                                 continue
                             end if
                         end if
@@ -1818,7 +1827,7 @@ Menu = {}
                         lib.ver = metaLib.version
                         lib.objects = {}
                         package.Netmap[pubIp].devices[locIp].libs[fileName] = lib
-                        print(("Grabbed File: " + fileName + " Lib: " + metaLib.lib_name + " v" + metaLib.version).color("green"))
+                        print(("Grabbed File: " + fileName + " Lib: " + metaLib.lib_name + " v" + metaLib.version).color(__retC))
                     end for
                 end function
             mainMap.map = {}
@@ -1828,11 +1837,11 @@ Menu = {}
                 mainMap.map.alias = []
                 mainMap.map.run = function(x)
                     tgt = package.Depth[package.Session].target
-                    if tgt.lib == "" then return print("You need a library first!".color("red"))
+                    if tgt.lib == "" then return print("You need a library first!".color(__errC))
                     d = package.Netmap[tgt.pub].devices[tgt.loc]
                     lib = d.libs[tgt.lib]
                     metaLib = lib.lib
-                    if not metaLib then return print(("This isn't a scannable library!").color("red"))
+                    if not metaLib then return print(("This isn't a scannable library!").color(__errC))
                     vlist = Database.vectorRead(metaLib)
                     if vlist then
                         i = 0
@@ -1840,9 +1849,9 @@ Menu = {}
                             i = i + 1
                             setcolor = "#848484"
                             sp = each.split(":")
-                            if sp[3] == "S" then setcolor = "red"
+                            if sp[3] == "S" then setcolor = __errC
                             if sp[3] == "C" then setcolor = "yellow"
-                            if sp[3] == "F" then setcolor = "green"
+                            if sp[3] == "F" then setcolor = __retC
                             if sp[3] == "P" then setcolor = "purple"
                             if sp[3] == "R" then setcolor = "orange"
                             if sp[3] == "?" then setcolor = "white"
@@ -1867,7 +1876,7 @@ Menu = {}
                             i = user_input("Select vector: ")
                         end if
                         if i != "map" then
-                            if not vlist.hasIndex(i.to_int-1) then return print("Invalid selection!".color("red"))
+                            if not vlist.hasIndex(i.to_int-1) then return print("Invalid selection!".color(__errC))
                             s = vlist[i.to_int-1]
                             i = "y"
                             if s.split(":")[3] != "?" then
@@ -1877,12 +1886,12 @@ Menu = {}
                             if i == "y" then
                                 sp = s.split(":")
                                 res = metaLib.overflow(sp[1], sp[2])
-                                if res isa string then return print(("Non-payment error!" + res).color("red"))
+                                if res isa string then return print(("Non-payment error!" + res).color(__errC))
                                 if not res then
                                     if user_input("Can you fix this? (y/N)\n") == "y" then
                                         if user_input("Is this an input issue? (Password Change/Lan Bounce) (y/N)\n") == "y" then
                                             res = metaLib.overflow(sp[1], sp[2], user_input("Enter input to resolve above problem:\n"))
-                                            if res isa string then return print(("Non-payment error!" + res).color("red"))
+                                            if res isa string then return print(("Non-payment error!" + res).color(__errC))
                                             if not res then
                                                 sp[3] = "?"
                                                 sp[4] = "?"
@@ -1905,7 +1914,7 @@ Menu = {}
                                     if res isa __shell then
                                         sp[3] = "S"
                                         type = "shell"
-                                        setColor = "red"
+                                        setColor = __errC
                                     else if res isa __computer then
                                         sp[3] = "C"
                                         type = "computer"
@@ -1913,7 +1922,7 @@ Menu = {}
                                     else if res isa __file then
                                         sp[3] = "F"
                                         type = "file"
-                                        setColor = "green"
+                                        setColor = __retC
                                     else if res isa number then
                                         if user_input("Is this a password change? (y/N) ") == "y" then
                                             sp[3] = "P"
@@ -1975,27 +1984,27 @@ Menu = {}
                                         if ul.hasIndex(i) then
                                             print("\n" + ("-"*60) + "\n")
                                             out = []
-                                            out.push(("User " + i + " found in " + ul[i].dev).color("green"))
+                                            out.push(("User " + i + " found in " + ul[i].dev).color(__retC))
                                             if not isNullOrEmpty(ul[i].mail) then
-                                                out.push(("  Email: " + ul[i].mail).color("green"))
-                                                out.push(("   Pass: " + decipher(package.Cr.lib, ul[i].pass)).color("green"))
+                                                out.push(("  Email: " + ul[i].mail).color(__retC))
+                                                out.push(("   Pass: " + decipher(package.Cr.lib, ul[i].pass)).color(__retC))
                                             else
-                                                out.push("Error reading Mail.txt".color("red"))
+                                                out.push("Error reading Mail.txt".color(__errC))
                                             end if
                                             print(out.join(char(10)) + "\n")
                                         end if
                                         return
                                     end if
                                     i = user_input("Enter lan IP: ")
-                                if not is_lan_ip(i) then return print("Invalid IP!".color("red"))
+                                if not is_lan_ip(i) then return print("Invalid IP!".color(__errC))
                                 else if sp[3] == "P" then
                                 i = user_input("Enter new password: ", 1).trim
-                                if not i.isAlphaNum or i.len > 15 then return print("Password must be 15 characters or less and be alphanumeric!".color("red"))
+                                if not i.isAlphaNum or i.len > 15 then return print("Password must be 15 characters or less and be alphanumeric!".color(__errC))
                                 end if
                                 res = metaLib.overflow(sp[1], sp[2], i)
-                                if res isa string then return print(("Non-payment error!" + res).color("red"))
+                                if res isa string then return print(("Non-payment error!" + res).color(__errC))
                                 if not res then
-                                    print("Exploit failed!".color("red"))
+                                    print("Exploit failed!".color(__errC))
                                 if package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport") and user_input("Override enabled!\nRepeat? (y/N) ") == "y" then
                                         t = user_input("Wait time (sec): ").to_int
                                         if t isa string or t < 1 then return
@@ -2004,7 +2013,7 @@ Menu = {}
                                             res = metaLib.overflow(sp[1], sp[2], i)
                                             wait(t)
                                         end while
-                                        if res isa string then return print(("Non-payment error!" + res).color("red"))
+                                        if res isa string then return print(("Non-payment error!" + res).color(__errC))
                                     else
                                         return
                                     end if
@@ -2050,12 +2059,12 @@ Menu = {}
                             out.push(target)
                             print("Overflow: " + mem + " : " + target)
                             res = metaLib.overflow(mem, target)
-                            if res isa string then return print(("Non-payment error!" + res).color("red"))
+                            if res isa string then return print(("Non-payment error!" + res).color(__errC))
                             if not res and not cur then
                                 if user_input("Can you fix this? (y/N)\n") == "y" then
                                     if user_input("Is this an input issue? (Password Change/Lan Bounce) (y/N)\n") == "y" then
                                         res = metaLib.overflow(mem, target, user_input("Enter input to resolve above problem:\n"))
-                                        if res isa string then return print(("Non-payment error!" + res).color("red"))
+                                        if res isa string then return print(("Non-payment error!" + res).color(__errC))
                                         if not res then
                                             out.push("?")
                                             out.push("?")
@@ -2082,7 +2091,7 @@ Menu = {}
                                 if res isa __shell then
                                     out.push("S")
                                     type = "shell"
-                                    setColor = "red"
+                                    setColor = __errC
                                 else if res isa __computer then
                                     out.push("C")
                                     type = "computer"
@@ -2090,7 +2099,7 @@ Menu = {}
                                 else if res isa __file then
                                     out.push("F")
                                     type = "file"
-                                    setColor = "green"
+                                    setColor = __retC
                                 else if res isa number then
                                     if user_input("Is this a password change? (y/N) ") == "y" then
                                         out.push("P")
@@ -2199,17 +2208,17 @@ Menu = {}
                     mem = x[0]
                     usec = x[1]
                     tgt = package.Depth[package.Session].target
-                    if tgt.lib == "" then return print("You need a library first!".color("red"))
+                    if tgt.lib == "" then return print("You need a library first!".color(__errC))
                     d = package.Netmap[tgt.pub].devices[tgt.loc]
                     lib = d.libs[tgt.lib]
                     metaLib = lib.lib
-                    if not metaLib then return print("This isn't a scannable library!".color("red"))
+                    if not metaLib then return print("This isn't a scannable library!".color(__errC))
                     i = ""
                     if x.hasIndex(2) then i = x[2]
                     res = metaLib.overflow(x[0], x[1], i)
-                    if res isa string then return print(("Non-payment error!" + res).color("red"))
+                    if res isa string then return print(("Non-payment error!" + res).color(__errC))
                     if not res then
-                        print("Exploit failed!".color("red"))
+                        print("Exploit failed!".color(__errC))
                         if package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport") and user_input("Override enabled!\nRepeat? (y/N)") == "y" then
                             t = user_input("Wait time (sec): ").to_int
                             if t isa string or t < 1 then return
@@ -2218,7 +2227,7 @@ Menu = {}
                                 res = metaLib.overflow(sp[1], sp[2], i)
                                 wait(t)
                             end while
-                            if res isa string then return print(("Non-payment error!" + res).color("red"))
+                            if res isa string then return print(("Non-payment error!" + res).color(__errC))
                         else
                             return
                         end if
@@ -2290,13 +2299,13 @@ Menu = {}
                 mainMap.payload.alias = []
                 mainMap.payload.run = function(x)
                     tgt = package.Depth[package.Session].target
-                    if tgt.lib == "" then return print("You need a library first!".color("red"))
+                    if tgt.lib == "" then return print("You need a library first!".color(__errC))
                     net = package.Netmap[tgt.pub]
                     dev = net.devices[tgt.loc]
                     lib = dev.libs[tgt.lib]
-                    if not lib.lib then return print("This isn't a valid library!".color("red"))
+                    if not lib.lib then return print("This isn't a valid library!".color(__errC))
                     if lib.lib.is_patched then
-                        return print(("Error: Library has been patched! Date library will be vulnerable: " + lib.lib.is_patched(true)).color("red"))
+                        return print(("Error: Library has been patched! Date library will be vulnerable: " + lib.lib.is_patched(true)).color(__errC))
                     end if
                     if (not net.debUser or not net.debPass) and user_input("Credentials found stored in net, would you like to enter new credentials? (y/N): ") == "y" then
                         net.debUser = user_input("Username: ")
@@ -2306,12 +2315,12 @@ Menu = {}
                     if debLib isa string then return print(debLib)
                     pobj = null
                     if x.hasIndex(1) and x[1].isValidPath then pobj = debLib.payload(x[0], x[1]) else pobj = debLib.payload(x[0])
-                    if not pobj isa list then return print(pobj.color("red"))
+                    if not pobj isa list then return print(pobj.color(__errC))
                     lib.pobj = pobj[0]
                     if pobj.hasIndex(2) then
                         file = pobj[2]
                         fileName = x[1].split("/")[-1]
-                        if not file then return print("Path not found!".color("red"))
+                        if not file then return print("Path not found!".color(__errC))
                         if file isa MetaLib then
                             if package.Netmap[tgt.pub].devices[tgt.loc].libs.hasIndex(fileName) then
                                 oldLib = package.Netmap[tgt.pub].devices[tgt.loc].libs[fileName]
@@ -2325,22 +2334,22 @@ Menu = {}
                                 lib.objects = {}
                                 package.Netmap[tgt.pub].devices[tgt.loc].libs[fileName] = lib
                             end if
-                            print(("File: " + fileName + " Lib: " + file.lib_name + " v" + file.version + " grabbed!").color("green"))
+                            print(("File: " + fileName + " Lib: " + file.lib_name + " v" + file.version + " grabbed!").color(__retC))
                         end if
                         if not file.is_binary and file.has_permission("r") and user_input("File " + fileName + "found! Save as file? (y/N): ") == "y" then
                             hc = package.Depth[0].shell.host_computer
                             out = hc.touch("/root/Downloads/", fileName)
-                            if out isa string then return print(out.color("red"))
+                            if out isa string then return print(out.color(__errC))
                             hfile = hc.File("/root/Downloads/" + fileName)
-                            if not hfile then return print("Couldn't find file!".color("red"))
+                            if not hfile then return print("Couldn't find file!".color(__errC))
                             out = hfile.set_content(file.get_content)
-                            if out isa string then return print(out.color("red"))
-                            print(("File " + fileName + " downloaded!").color("green"))
+                            if out isa string then return print(out.color(__errC))
+                            print(("File " + fileName + " downloaded!").color(__retC))
                         else
-                            print("File " + fileName + " not found or no read permission!".color("red"))
+                            print("File " + fileName + " not found or no read permission!".color(__errC))
                         end if
                     else
-                        print("No file grabbed!".color("red"))
+                        print("No file grabbed!".color(__errC))
                     end if
                 end function
             mainMap.cmd = {}
@@ -2350,11 +2359,11 @@ Menu = {}
                 mainMap.cmd.alias = []
                 mainMap.cmd.run = function(x)
                     tgt = package.Depth[package.Session].target
-                    if tgt.lib == "" then return print("You need a library first!".color("red"))
+                    if tgt.lib == "" then return print("You need a library first!".color(__errC))
                     dev = package.Netmap[tgt.pub].devices[tgt.loc]
                     lib = dev.libs[tgt.lib]
                     metaLib = lib.lib
-                    if not metaLib then return print("This isn't a valid library!".color("red"))
+                    if not metaLib then return print("This isn't a valid library!".color(__errC))
                     o = lib.pobj
                     while true
                         ui = user_input("[Payload CMD] ").trim
@@ -2387,7 +2396,7 @@ Menu = {}
                 mainMap.rel.alias = []
                 mainMap.rel.run = function(x)
                     tgt = package.Depth[package.Session].target
-                    if tgt.pub == "" then return print("You haven't selected a target network yet!".color("red"))
+                    if tgt.pub == "" then return print("You haven't selected a target network yet!".color(__errC))
                     i = "y"
                     if x[0] != "-o" then
                         i = ""
@@ -2402,20 +2411,20 @@ Menu = {}
                         tgt.obj = ""
                         tgt.lib = ""
                     else if tgt.loc != "" then
-                        if package.thisC.public_ip == tgt.pub and package.thisC.local_ip == tgt.loc then return print("Cannot delete active device!".color("red"))
+                        if package.thisC.public_ip == tgt.pub and package.thisC.local_ip == tgt.loc then return print("Cannot delete active device!".color(__errC))
                         package.Netmap[tgt.pub].devices.remove(tgt.loc)
                         tgt.obj = ""
                         tgt.lib = ""
                         tgt.loc = ""
                     else if tgt.pub != "" then
-                        if package.thisC.public_ip == tgt.pub then return print("Cannot delete active network!".color("red"))
+                        if package.thisC.public_ip == tgt.pub then return print("Cannot delete active network!".color(__errC))
                         package.Netmap.remove(tgt.pub)
                         tgt.obj = ""
                         tgt.lib = ""
                         tgt.loc = ""
                         tgt.pub = ""
                     end if
-                    print("Target released".color("green"))
+                    print("Target released".color(__retC))
                 end function
             mainMap.rshell = {}
                 mainMap.rshell.use = "Usage: rshell <b>(-s/-c/-i)</b>"
@@ -2428,20 +2437,20 @@ Menu = {}
                     if x[0] == "-c" then
                         server = user_input("Enter server IP: ")
                         if not is_valid_ip(server) then server = package.Depth[package.Session - 1].target.loc
-                        if not is_valid_ip(server) then return print("Invalid IP!".color("red"))
+                        if not is_valid_ip(server) then return print("Invalid IP!".color(__errC))
                         port = user_input("Enter port to use: ").to_int
                         if not port isa number or port < 0 or port > 65535 then port = 25565
                         name = ""
                         name = user_input("Name of proc: ").trim
                         if name == "" then name = "Minecraft"
                         resProcs = ["dsession","kernel_task","xorg","ssh_enc"]
-                        if resProcs.indexOf(name) != null then return print((name + " is a reserved process name").color("red"))
+                        if resProcs.indexOf(name) != null then return print((name + " is a reserved process name").color(__errC))
                         out = package.Depth[package.Session].Mx.lib.rshell_client(server, port, name)
-                        if out isa string then print(out.color("red"))
+                        if out isa string then print(out.color(__errC))
                     else if x[0] == "-s" then
                         if package.Session == 0 then
-                            i = user_input("You are about to install an rshell server on your home system, this isn't advisable!".color("red") + "\nAre you sure you want to do this? (y/N) ")
-                            if i != "y" then return print(("Operation canceled!").color("red"))
+                            i = user_input("You are about to install an rshell server on your home system, this isn't advisable!".color(__errC) + "\nAre you sure you want to do this? (y/N) ")
+                            if i != "y" then return print(("Operation canceled!").color(__errC))
                         end if
                         hc = package.thisC
                         if not package.Netmap.hasIndex(hc.public_ip) then
@@ -2459,33 +2468,33 @@ Menu = {}
                         dev = package.Netmap[hc.public_ip].devices[hc.local_ip]
                         if dev.rss and user_input("Rshell server already installed, uninstall? (y/N): ") == "y" then
                             out = dev.rss.rshelld.stop_service
-                            if out isa string then return print(out.color("red"))
-                            print("Rshell server stopped!".color("green"))
+                            if out isa string then return print(out.color(__errC))
+                            print("Rshell server stopped!".color(__retC))
                             dev.rss = null
                         end if
                         if not dev.rss then
                             out = package.Depth[0].shell.scp(package.librshell.path, "/lib/", session.shell)
-                            if out isa string then return print(out.color("red"))
+                            if out isa string then return print(out.color(__errC))
                             rss = new RshellServer
                             rss.Mx = session.Mx
                             rss.rshelld = include_lib("/lib/librshell.so")
-                            if not rss.rshelld then return print("I couldn't find the lib!".color("red"))
+                            if not rss.rshelld then return print("I couldn't find the lib!".color(__errC))
                             out = rss.rshelld.install_service
-                            if out isa string then print(out.color("red"))
+                            if out isa string then print(out.color(__errC))
                             dev.rss = rss
-                            if dev.rss then print(("Rshell server installed on " + hc.public_ip + "-" + hc.local_ip).color("green"))
+                            if dev.rss then print(("Rshell server installed on " + hc.public_ip + "-" + hc.local_ip).color(__retC))
                         else
                             dev.rss.Mx = session.Mx
                             rshelld = include_lib("/lib/librshell.so")
                             if typeof(rshelld) == "service" then dev.rss.rshelld = rshelld
-                            print("Rshell server already installed on this device!".color("red"))
+                            print("Rshell server already installed on this device!".color(__errC))
                         end if
                     else if x[0] == "-i" then
-                        if tgt.pub == "" or tgt.loc == "" then return print("Select a target rshell server!".color("red"))
+                        if tgt.pub == "" or tgt.loc == "" then return print("Select a target rshell server!".color(__errC))
                         rss = package.Netmap[tgt.pub].devices[tgt.loc].rss
-                        if not rss then return print("There is no rshell server on this system!".color("red"))
+                        if not rss then return print("There is no rshell server on this system!".color(__errC))
                         shells = rss.Mx.lib.rshell_server
-                        if shells isa string then return print(shells.color("red"))
+                        if shells isa string then return print(shells.color(__errC))
                         info = "No Shells Found!"
                         if shells.len != 0 then
                         info = "LEVEL PUBLIC LOCAL"
@@ -2504,14 +2513,14 @@ Menu = {}
                 mainMap.jump.minPar = 0
                 mainMap.jump.alias = []
                 mainMap.jump.run = function(x)
-                    if package.Session == 12 then return print("You are only able to reach a depth of 12 please exit some sessions before going deeper!".color("red"))
+                    if package.Session == 12 then return print("You are only able to reach a depth of 12 please exit some sessions before going deeper!".color(__errC))
                     if x and x.hasIndex(0) and x[0] == "-l" then mainMenu.cl
                     tgt = package.Depth[package.Session].target
-                    if tgt.obj == "" then return print("You need to select a target shell".color("red"))
+                    if tgt.obj == "" then return print("You need to select a target shell".color(__errC))
                     shell = package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
-                    if not shell isa __shell and typeof(shell) != "ftpshell" then return print("That isn't a shell!".color("red"))
+                    if not shell isa __shell and typeof(shell) != "ftpshell" then return print("That isn't a shell!".color(__errC))
                     getD = mainMenu.getDrop(File(host_computer(shell), "/"))
-                    if not getD then return print("Couldn't find a place to drop!".color("red"))
+                    if not getD then return print("Couldn't find a place to drop!".color(__errC))
                     loc = getD.path
                     package.Depth[0].shell.scp(package.unity.path, loc, shell)
                     package.Session = package.Session + 1
@@ -2530,10 +2539,10 @@ Menu = {}
                 mainMap.terminal.alias = []
                 mainMap.terminal.run = function(x)
                 tgt = package.Depth[package.Session].target
-                if tgt.obj == "" then return print("You need to select a target shell".color("red"))
+                if tgt.obj == "" then return print("You need to select a target shell".color(__errC))
                 shell = package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
-                if not shell isa __shell and typeof(shell) != "ftpshell" then return print("That isn't a shell!".color("red"))
-                if user_input("THIS WILL EXIT EXECUTION AND LEAVE YOU STRANDED ON THE TARGET SHELL!!\nType ""start_terminal"" to continue:\n".color("red")) != "start_terminal" then return
+                if not shell isa __shell and typeof(shell) != "ftpshell" then return print("That isn't a shell!".color(__errC))
+                if user_input("THIS WILL EXIT EXECUTION AND LEAVE YOU STRANDED ON THE TARGET SHELL!!\nType ""start_terminal"" to continue:\n".color(__errC)) != "start_terminal" then return
                 start_terminal(shell)
                 exit
                 end function
@@ -2543,22 +2552,22 @@ Menu = {}
                 mainMap.alias.minPar = 1
                 mainMap.alias.alias = []
                 mainMap.alias.run = function(x)
-                    if not mainMenu.cmd.hasIndex(x[0]) then return print("Invalid command!".color("red"))
+                    if not mainMenu.cmd.hasIndex(x[0]) then return print("Invalid command!".color(__errC))
                     a = user_input("Enter desired alias for " + x[0] + ": ").trim
-                    if a.len < 2 then return print("Alias must be at least 2 characters!".color("red"))
-                    if a != a.lower then return print("Alias must be lowercase!".color("red"))
-                    if mainMenu.cmd.hasIndex(a) then return print("Alias conflicts with existing command!".color("red"))
+                    if a.len < 2 then return print("Alias must be at least 2 characters!".color(__errC))
+                    if a != a.lower then return print("Alias must be lowercase!".color(__errC))
+                    if mainMenu.cmd.hasIndex(a) then return print("Alias conflicts with existing command!".color(__errC))
                     alias = x[0] + ":" + a
                     data = package.aliasmap.get_content
-                    if data == null then return print("Alias map file not found or permissions denied!".color("red"))
-                    if data.is_match(a) then return print("Alias already exists!".color("red"))
+                    if data == null then return print("Alias map file not found or permissions denied!".color(__errC))
+                    if data.is_match(a) then return print("Alias already exists!".color(__errC))
                     data = data.split(char(10))
                     if data == null then data = []
-                    if data.len != 0 and data.indexOf(alias) != null then return print("Alias already exists!".color("red"))
+                    if data.len != 0 and data.indexOf(alias) != null then return print("Alias already exists!".color(__errC))
                     data.push(alias)
                     package.aliasmap.set_content(data.join(char(10)))
                     mainMenu.cmd[x[0]].alias.push(a)
-                    print("Alias set!".color("green"))
+                    print("Alias set!".color(__retC))
                 end function
             mainMap.exit = {}
                 mainMap.exit.use = "Usage: exit <b>[-l]</b>"
@@ -2568,7 +2577,7 @@ Menu = {}
                 mainMap.exit.run = function(x)
                     if x[0] == "-l" then mainMenu.cl
                     if package.Session != 0 then exit("Exiting depth " + package.Session)
-                    if user_input("Are you sure you want to exit Unity fully?".color("red") + "\nType ""exit"" again to completely exit Unity: ".color("red")) != "exit" then return
+                    if user_input("Are you sure you want to exit Unity fully?".color(__errC) + "\nType ""exit"" again to completely exit Unity: ".color(__errC)) != "exit" then return
                     exit("Unity shutting down...")
                 end function
         print("Loading alias map...")
@@ -2599,28 +2608,28 @@ Menu = {}
             else if obj isa __computer then
                 comp = obj
             else
-                return print("You can't clear a log on a corrupted device without a root shell or computer!".color("red"))
+                return print("You can't clear a log on a corrupted device without a root shell or computer!".color(__errC))
             end if
             out = comp.touch("/var", "temp")
-            if out isa string then return print(out.color("red"))
+            if out isa string then return print(out.color(__errC))
             wait(0.02)
             file = comp.File("/var/temp")
-            if not file then return print("File not found!".color("red"))
+            if not file then return print("File not found!".color(__errC))
             file.set_content(package.Sig)
             out = file.move("/var/", "system.log")
-            if out isa string then return print(out.color("red"))
-            return print("Log cleared".color("green"))
+            if out isa string then return print(out.color(__errC))
+            return print("Log cleared".color(__retC))
         end if
-        if not folder.has_permission("w") then return print("You dont have permission to clear the log!".color("red"))
+        if not folder.has_permission("w") then return print("You dont have permission to clear the log!".color(__errC))
         file = folder.get_files.first("name", "fstab")
         res = file.copy("/etc", "log")
-        if res isa string then return print(res.color("red"))
+        if res isa string then return print(res.color(__errC))
         wait(0.02)
         logfile = folder.get_files.first("name", "log")
         logfile.set_content(package.Sig)
         res = logfile.move("/var/", "system.log")
-        if res isa string then return print(res.color("red"))
-        print("Log cleared".color("green"))
+        if res isa string then return print(res.color(__errC))
+        print("Log cleared".color(__retC))
         end function
     Menu.BackupGco = function
         self.gco = {}
@@ -2657,7 +2666,7 @@ Menu = {}
         else
             router = get_router(address)
         end if
-        if router == null then return print("I can't find that address!".color("red"))
+        if router == null then return print("I can't find that address!".color(__errC))
         print("Kernel v" + router.kernel_version + " found!")
         ports = null
         pub = router.public_ip
@@ -2679,11 +2688,11 @@ Menu = {}
         else
             ports = router.device_ports(address)
         end if
-        if not ports then return print(("No ports found for device " + address).color("red"))
-        if ports isa string then return print(ports.color("red"))
+        if not ports then return print(("No ports found for device " + address).color(__errC))
+        if ports isa string then return print(ports.color(__errC))
         info = "PORT STATE SERVICE VERSION LAN"
         if ports isa string then return print(format_columns(info + char(10) + ports.port_number + " " + router.port_info(ports) + " " + ports.get_lan_ip))
-        if ports.len == 0 then return print("I didn't find any ports... Sorry.".color("red"))
+        if ports.len == 0 then return print("I didn't find any ports... Sorry.".color(__errC))
         for port in ports
             service = router.port_info(port)
             lan = port.get_lan_ip
@@ -2728,9 +2737,9 @@ Menu = {}
         end function
     Menu.userScan = function(mem, unsec)
         tgt = package.Depth[package.Session].target
-        if tgt.lib == "" then return "You need a library first!".color("red")
+        if tgt.lib == "" then return "You need a library first!".color(__errC)
         d = package.Netmap[tgt.pub].devices[tgt.loc]
-        if d.type != "router" then return "This can only be performed on a router!".color("red")
+        if d.type != "router" then return "This can only be performed on a router!".color(__errC)
         lib = d.libs[tgt.lib]
         metaLib = lib.lib
         package.devList = []
@@ -2741,13 +2750,13 @@ Menu = {}
             if not is_valid_ip(dev) or not is_lan_ip(dev) then continue
             res = metaLib.overflow(mem, unsec, dev)
             if not res then continue
-            if typeof(res) != "computer" then return "That is not a computer exploit!".color("red")
+            if typeof(res) != "computer" then return "That is not a computer exploit!".color(__errC)
             for user in res.File("/home").get_folders.wherenot("name", "guest")
                 if user.name == "cctv" then
-                    print("Device is CCTV.".color("green"))
+                    print("Device is CCTV.".color(__retC))
                     continue
                 else if user.name == "iot" then
-                    print("Device is IOT.".color("green"))
+                    print("Device is IOT.".color(__retC))
                     continue
                 end if
                 u = new User
@@ -2756,21 +2765,21 @@ Menu = {}
                 if f then
                     c = f.get_content
                     if not c.indexOf(":") then
-                        print(("Mail error: User: " + user.name + " at IP: " + dev).color("red"))
+                        print(("Mail error: User: " + user.name + " at IP: " + dev).color(__errC))
                     else
                     sp = c.split(":")
                     u.mail = sp[0]
                     u.pass = sp[1]
                     end if
                 else
-                    print(("Mail error: Mail.txt not found for user: " + user.name).color("red"))
+                    print(("Mail error: Mail.txt not found for user: " + user.name).color(__errC))
                 end if
                 ul[user.name] = u
             end for
         end for
         package.devList = null
         if ul.len > 0 then return ul
-        return "No users found in network!".color("red")
+        return "No users found in network!".color(__errC)
         end function
     Menu.getDevicesOf = function(router)
         devip = router.local_ip
@@ -2812,9 +2821,9 @@ Menu = {}
         end for
         end function
     Menu.moveTo = function(lib)
-        print(("Couldn't find " + lib + "!").color("red") + "\nLocating and moving to current path...")
+        print(("Couldn't find " + lib + "!").color(__errC) + "\nLocating and moving to current path...")
         f = package.thisC.File("/lib/" + lib)
-        if not f then return("Couldn't find " + lib + ", unity requires " + lib + " in the executing folder!".color("red"))
+        if not f then return("Couldn't find " + lib + ", unity requires " + lib + " in the executing folder!".color(__errC))
         return f.move(current_path, lib)
         end function
     Menu.updateLibs = function
@@ -2822,18 +2831,18 @@ Menu = {}
         acf = hc.File(current_path + "/aptclient.so")
         if not acf then
             out = self.moveTo("aptclient.so")
-            if out isa string then exit(out.color("red"))
+            if out isa string then exit(out.color(__errC))
             acf = hc.File(current_path + "/aptclient.so")
         end if
-        if not acf then exit("Error: Aptclient.so was not found!".color("red"))
+        if not acf then exit("Error: Aptclient.so was not found!".color(__errC))
         aptclient = include_lib(acf.path)
         if aptclient.search("metaxploit.so").is_match("not found") then
-            hackshop = user_input("ERROR: Hackshop not found!".color("red") + "\nUnity needs the hackshop to download metaxploit and librshell!\n Enter a hackshop IP: ")
-            if not is_valid_ip(hackshop) or is_lan_ip(hackshop) then exit("That is an invalid hackshop IP!".color("red"))
+            hackshop = user_input("ERROR: Hackshop not found!".color(__errC) + "\nUnity needs the hackshop to download metaxploit and librshell!\n Enter a hackshop IP: ")
+            if not is_valid_ip(hackshop) or is_lan_ip(hackshop) then exit("That is an invalid hackshop IP!".color(__errC))
             out = aptclient.add_repo(hackshop)
-            if not isNullOrEmpty(out) then exit(out.color("red"))
+            if not isNullOrEmpty(out) then exit(out.color(__errC))
             aptclient.update
-            if aptclient.search("metaxploit.so").is_match("not found") then exit("That is not a repo! Please delete /etc/apt/sources.txt and try again!".color("red"))
+            if aptclient.search("metaxploit.so").is_match("not found") then exit("That is not a repo! Please delete /etc/apt/sources.txt and try again!".color(__errC))
         end if
         print "Updating Metaxploit...".color("blue")
         aptclient.install("metaxploit.so", current_path)
@@ -2847,14 +2856,14 @@ Menu = {}
             aptclient.install("librshell.so", current_path)
         end if
         if not hc.File(current_path + "/libssh.so") then
-            print "Updating SSH...".color("red")
+            print "Updating SSH...".color(__errC)
             aptclient.install("libssh.so", current_path)
         end if
         if not hc.File(current_path + "/libtrafficnet.so") then
             print "Updating TrafficNet...".color("orange")
             aptclient.install("libtrafficnet.so", current_path)
         end if
-        print "Libs up to date!".color("green")
+        print "Libs up to date!".color(__retC)
         end function
     Menu.incMx = function
         if package.Session != 0 then package.Depth[0].shell.scp(package.MxF.path, package.thisC.File(current_path).path, package.Depth[package.Session].shell)
@@ -2906,7 +2915,7 @@ Menu = {}
             loc = current_path + "/aptclient.so"
             ac = include_lib(loc)
         end if
-        if not ac or typeof(ac) != "aptclientLib" then return print("Error: Aptclient not found on system and couldn't be moved up!".color("red"))
+        if not ac or typeof(ac) != "aptclientLib" then return print("Error: Aptclient not found on system and couldn't be moved up!".color(__errC))
         ver = package.Depth[package.Session].Mx.lib.load(loc).version
         aCo = new Tool
         aCo.lib = ac
@@ -2964,9 +2973,9 @@ Menu = {}
         end function
     Menu.targetC = function(command)
             tgt = package.Depth[package.Session].target
-            if tgt.obj == "" then return "No object selected!".color("red")
+            if tgt.obj == "" then return "No object selected!".color(__errC)
             obj = package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
-            if obj isa __file then return ("You need at least a computer to use " + command + "!").color("red")
+            if obj isa __file then return ("You need at least a computer to use " + command + "!").color(__errC)
             if obj isa __shell or typeof(obj) == "ftpshell" then obj = host_computer(obj)
             return obj
         end function
@@ -2981,7 +2990,7 @@ Menu = {}
         file = obj
         if file isa __shell or typeof(file) == "ftpshell" then file = File(host_computer(file), "/")
         if file isa __computer then file = File(file, "/")
-        if file isa __file then file = self.toRoot(file) else return print("Object is not an acceptable type! ".color("red") + typeof(file) + " " + file)
+        if file isa __file then file = self.toRoot(file) else return print("Object is not an acceptable type! ".color(__errC) + typeof(file) + " " + file)
         
         if not file then return "unknown"
         root = file.get_folders.first("path", "/root")
@@ -3029,7 +3038,7 @@ Menu = {}
             f=@self.cmd[command[0].lower].run
             if command.len > 1 then f(command[1:]) else f
         else
-            print("Invalid command!".color("red"))
+            print("Invalid command!".color(__errC))
         end if
         end function
     Menu.run = function
@@ -3051,10 +3060,10 @@ Menu = {}
                     info = "A<sub>" + au + "</sub> U<sub>" + ns.get_num_users + "</sub> P<sub>" + ns.get_num_portforward + "</sub> G<sub>" + ns.get_num_conn_gateway + "</sub>" + rss + tnet
                 end if
             end if
-            target = "No Target!".color("red")
-            if tgt.pub != "" then target = (tgt.pub + "-" + tgt.loc + "-" + tgt.lib + "-" + tgt.obj).color("green")
+            target = "No Target!".color(__errC)
+            if tgt.pub != "" then target = (tgt.pub + "-" + tgt.loc + "-" + tgt.lib + "-" + tgt.obj).color(__retC)
             print(info)
-            userChoice = user_input("<size=80%>" + target + "</size>" + "<pos=0%><voffset=-1.2em>" + "[" + active_user + "@" + package.thisC.get_name + " " + package.Session + "] ").trim
+            userChoice = user_input("<size=80%>" + target + "</size>" + "<pos=0%><voffset=-1.2em>" + "[" + active_user + "@" + package.thisC.get_name + " " + package.Session + "] <color=" + __promptC +">").trim
             if userChoice == "" then continue
             if userChoice == "-h" or userChoice == "help" then 
                 self.help
