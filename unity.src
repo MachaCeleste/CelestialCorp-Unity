@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.0.29"
+__v = "v2.0.30"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -43,7 +43,7 @@ Linq = function(e,k,v)
             return false
         end if
     end if
-    if not e.values[0].hasIndex(k) then return print("Index " + k + " not found in map!")
+    if not e.values[0].hasIndex(k) then return print("Index " + k + " not found in map!".color(__errC))
     f = @e[k]
     if f(e)==v then return true
     return false
