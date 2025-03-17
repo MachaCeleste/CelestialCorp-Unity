@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.0.31"
+__v = "v2.0.32"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -1479,6 +1479,7 @@ Menu = {}
                     shell = package.Depth[package.Session].shell
                     if x and x[0] == "-t" then
                         tgt = package.Depth[package.Session].target
+                        if tgt.obj == "" then return print("You need to select a target shell".color(__errC))
                         shell = package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
                         if not shell isa __shell and typeof(shell) != "ftpShell" then return print("Target must be a shell!".color(__errC))
                     end if
