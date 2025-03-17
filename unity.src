@@ -799,7 +799,7 @@ FXploreMenu = {}
         print(("Launching FXplore at <b>" + x + "</b> level...").color("#5bcff9"))
         while true
             self.ls
-            userChoice = user_input("[" + self.access + "@" + n + " " + self.folder.path + "] ").trim
+            userChoice = user_input("[" + self.access + "@" + n + " " + self.folder.path + "] <color=" + __promptC + ">").trim
             if userChoice == "" then continue
             if userChoice == "-h" or userChoice == "help" then 
                 self.help
