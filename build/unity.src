@@ -1,7 +1,9 @@
-__v="v2.0.32"
+__v="v2.1.0"
 __promptC="#fc03a9"
 __retC="green"
 __errC="red"
+__useC="purple"
+__descC="#f5a8b8"
 package=@get_custom_object
 __shell=get_shell
 __computer=__shell.host_computer
@@ -780,7 +782,7 @@ level=""
 if self.cmd[each].level=="folder" then level="file"
 if self.cmd[each].level=="computer" then level="computer"
 if self.cmd[each].level=="shell" then level="shell"
-if self.cmd[each].hasIndex("run") and self.cmd[each].hasIndex("desc") then print(self.cmd[each].use.color("purple")+"\n"+self.cmd[each.lower].desc.color("#f5a8b8")+"\n"+("Requires: "+level).color("#f5a8b8"))
+if self.cmd[each].hasIndex("run") and self.cmd[each].hasIndex("desc") then print(self.cmd[each].use.color(__useC)+"\n"+self.cmd[each.lower].desc.color(__descC)+"\n"+("Requires: "+level).color(__descC))
 end for
 end function
 FXploreMenu.run=function
@@ -815,7 +817,7 @@ print("Incorrect level, that command requires a "+level+" object!")
 continue
 end if
 if self.cmd[userChoice[0].lower].minPar>userChoice[1:].len or userChoice[1]=="-h" then
-print(self.cmd[userChoice[0].lower].use.color("purple")+"\n"+self.cmd[userChoice[0].lower].desc.color("#f5a8b8")+"\n"+("Requires: "+level).color("#f5a8b8"))
+print(self.cmd[userChoice[0].lower].use.color(__useC)+"\n"+self.cmd[userChoice[0].lower].desc.color(__descC)+"\n"+("Requires: "+level).color(__descC))
 continue
 end if
 f=@self.cmd[userChoice[0].lower].run
@@ -3020,7 +3022,7 @@ return ip
 end function
 Menu.help=function
 for each in self.cmd.indexes
-if self.cmd[each].hasIndex("run") and self.cmd[each].hasIndex("desc") then print(self.cmd[each].use.color("purple")+"\n"+self.cmd[each].desc.color("#f5a8b8"))
+if self.cmd[each].hasIndex("run") and self.cmd[each].hasIndex("desc") then print(self.cmd[each].use.color(__useC)+"\n"+self.cmd[each].desc.color(__descC))
 end for
 end function
 Menu.CommandHandler=function(command)
@@ -3032,7 +3034,7 @@ end for
 end if
 if self.cmd.hasIndex(command[0].lower) then
 if self.cmd[command[0].lower].minPar>command[1:].len or (command.hasIndex(1) and command[1]=="-h") then
-print(self.cmd[command[0].lower].use.color("purple")+"\n"+self.cmd[command[0].lower].desc.color("#f5a8b8"))
+print(self.cmd[command[0].lower].use.color(__useC)+"\n"+self.cmd[command[0].lower].desc.color(__descC))
 return 
 end if
 f=@self.cmd[command[0].lower].run
