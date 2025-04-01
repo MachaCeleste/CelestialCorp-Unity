@@ -303,7 +303,7 @@ FXploreMenu = {}
                     out = hfile.set_content(file.get_content)
                     if out isa string then return print(out.color(__errC))
                 end function
-            fxploreMap.cd = {}//TODO fix error when cd to file not folder
+            fxploreMap.cd = {}
                 fxploreMap.cd.use = "Usage: cd <b>(folder/../absPath)</b>"
                 fxploreMap.cd.desc = "Change directories, can use absolute or direct pathing."
                 fxploreMap.cd.level = "folder"
