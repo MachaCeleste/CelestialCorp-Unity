@@ -1,4 +1,4 @@
-__v="v2.1.13E"
+__v="v2.1.16E"
 __promptC="#fc03a9"
 __retC="green"
 __errC="red"
@@ -446,6 +446,7 @@ if not s isa number or s>l.len then return print("Invalid selection!".color(__er
 ret=l[s-1]
 else
 ret=files[0]
+if not ret.is_folder then return print("No folder of that name found in system!")
 end if
 end if
 folder=ret
@@ -951,7 +952,6 @@ end if
 end for
 end if
 package.user=active_user
-package.exePath=__AppPath
 package.InstanceId=Guid
 package.Sig="<size=""40px"">Unity"
 package.sigfile=package.thisC.File(__AppPath+"/sig.src")
@@ -1007,6 +1007,7 @@ end if
 package.Depth[package.Session]={}
 package.Depth[package.Session].shell=get_shell
 package.Depth[package.Session].target=new Target
+package.Depth[package.Session].loc=program_path.split("/")[:-1].join("/")
 self.incMx
 self.incAc
 if not isShellLaunch then
@@ -2974,14 +2975,18 @@ end if
 print("Libs up to date!".color(__retC))
 end function
 Menu.incMx=function
-if package.Session!=0 then package.Depth[0].shell.scp(package.MxF.path,package.thisC.File(__AppPath).path,package.Depth[package.Session].shell)
-mx=include_lib(__AppPath+"/metaxploit.so")
+loc=__AppPath
+if package.Session!=0 then
+loc=package.Depth[package.Session].loc
+package.Depth[0].shell.scp(package.MxF.path,loc,package.Depth[package.Session].shell)
+end if
+mx=include_lib(loc+"/metaxploit.so")
 if not mx then return print("Failed to include local mx".color("red"))
 mXo=new Tool
 mXo.lib=mx
 mXo.pubIp=package.thisC.public_ip
 mXo.locIp=package.thisC.local_ip
-mXo.ver=mx.load(__AppPath+"/metaxploit.so").version
+mXo.ver=mx.load(loc+"/metaxploit.so").version
 package.Depth[package.Session].Mx=mXo
 end function
 Menu.incCr=function
@@ -2998,14 +3003,12 @@ if not cr then
 loc=__AppPath
 cr=include_lib(loc+"/crypto.so")
 if not cr then
-loc=self.getDrop(File(host_computer(shell),"/")).path
-if not loc then return "couldn't find drop for crypto"
-cp=package.Depth[0].shell.scp(package.CrF.path,loc,shell)
-if cp isa string then return cp
+loc=package.Depth[package.Session].loc
+package.Depth[0].shell.scp(package.CrF.path,loc,shell)
 cr=include_lib(loc+"/crypto.so")
-if not cr then return "couldn't find crypto"
 end if
 end if
+if not cr or typeof(cr)!="cryptoLib" then return "couldn't find crypto"
 ver=package.Depth[package.Session].Mx.lib.load(loc+"/crypto.so").version
 hc=package.Depth[package.Session].shell.host_computer
 cRo=new Tool
@@ -3017,15 +3020,19 @@ return cRo
 end function
 Menu.incAc=function
 if active_user!="root" then return 
-loc="/lib/aptclient.so"
-ac=include_lib(loc)
+loc="/lib"
+ac=include_lib(loc+"/aptclient.so")
 if not ac then
-if package.Session!=0 then package.Depth[0].shell.scp(package.AcF.path,package.thisC.File(__AppPath).path,package.Depth[package.Session].shell)
-loc=__AppPath+"/aptclient.so"
-ac=include_lib(loc)
+loc=__AppPath
+ac=include_lib(loc+"/aptclient.so")
+if not ac then
+loc=package.Depth[package.Session].loc
+if package.Session!=0 then package.Depth[0].shell.scp(package.AcF.path,loc,package.Depth[package.Session].shell)
+ac=include_lib(loc+"/aptclient.so")
+end if
 end if
 if not ac or typeof(ac)!="aptclientLib" then return print("Error: Aptclient not found on system and couldn't be moved up!".color(__errC))
-ver=package.Depth[package.Session].Mx.lib.load(loc).version
+ver=package.Depth[package.Session].Mx.lib.load(loc+"/aptclient.so").version
 aCo=new Tool
 aCo.lib=ac
 aCo.pubIp=package.thisC.public_ip
