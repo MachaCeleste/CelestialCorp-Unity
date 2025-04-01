@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.1.4"
+__v = "v2.1.13E"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -130,6 +130,96 @@ string.isValidName = function
 string.isValidPath = function
     if self.is_match("[^a-zA-Z0-9-_/.]") then return false
     return true
+    end function
+Random = {}
+    Random.MaxValue = 2147483647
+    Random.MinValue = -2147483648
+    Random._seedArray = [0]*56
+    Random._inext = 0
+    Random.inextp = 0
+    Random.seed = null
+    Random.init = function(seed)
+        if not seed then seed = round((rnd*(self.MaxValue-self.MinValue))+self.MinValue)
+        self.seed = seed
+        num = 0
+        num2 = abs(seed)
+        if seed == self.MinValue then num2 = self.MaxValue
+        num3 = 161803398 - num2
+        self._seedArray[55] = num3
+        num4 = 1
+        for i in range(1, 54)
+            num = num + 21
+            if num >= 55 then num = num - 55
+            self._seedArray[num] = num4
+            num4 = num3 - num4
+            if num4 < 0 then num4 = num4 + self.MaxValue
+            num3 = self._seedArray[num]
+        end for
+        for j in range(1, 4)
+            for k in range(1, 55)
+                num5 = k + 30
+                if num5 >= 55 then num5 = num5 - 55
+                self._seedArray[k] = self._seedArray[k] - self._seedArray[1 + num5]
+                if self._seedArray[k] < 0 then self._seedArray[k] = self._seedArray[k] + self.MaxValue
+            end for
+        end for
+        self._inext = 0
+        self._inextp = 21
+        seed = 1
+        end function
+    Random.Next = function(max, min = null)
+        if not min then
+            if max < 0 then exit("Error: Max must be greater than zero.")
+            return self.sample * max
+        end if
+        if min > max then exit("Error: Min cannot be greater than Max.")
+        num = max - min
+        if num <= 2147483647 then return self.sample * num + min
+        return self.getlongsample * num + min
+        end function
+    Random.sample = function
+        return self.intsample * 4.656612875245797E-10
+        end function
+    Random.intsample = function
+        num = self._inext
+        num2 = self._inextp
+        num = num + 1
+        if num >= 56 then num = 1
+        num2 = num2 + 1
+        if num2 >= 56 then num2 = 1
+        num3 = self._seedArray[num] - self._seedArray[num2]
+        if num3 == 2147483647 then num3 = num3 - 1
+        if num3 < 0 then num3 = num3 + self.MaxValue
+        self._seedArray[num] = num3
+        self.inext = num
+        self.inextp = num2
+        return num3
+        end function
+    Random.getlongsample = function
+        num = self.intsample
+        if self.intsample % 2 == 0 then num = -num
+        return (num + 2147483646.0) / 4294967293.0
+        end function
+Guid = function(seed = null)
+    getRandomHex = function(r)
+        hexChars = "0123456789abcdef"
+        return hexChars[r.Next(hexChars.len)]
+        end function
+    random = new Random
+    random.init(seed)
+    guidFormat = [8,4,4,4,12]
+    output = ""
+    i = 0
+    for place in guidFormat
+        if i > 0 then output = output + "-"
+        n = 0
+        while n < place
+            output = output + getRandomHex(random)
+            n = n + 1
+        end while
+        i = i + 1
+    end for
+    return output
     end function
 Target = {}
     Target.pub = ""
@@ -804,7 +894,7 @@ FXploreMenu = {}
         print(("Launching FXplore at <b>" + x + "</b> level...").color("#5bcff9"))
         while true
             self.ls
-            userChoice = user_input("[" + self.access + "@" + n + " " + self.folder.path + "] <color=" + __promptC + ">").trim
+            userChoice = user_input(("[" + self.access + "@" + n + " " + self.folder.path + "] <color=" + __promptC + ">"), 0, 0, 1).trim
             if userChoice == "" then continue
             if userChoice == "-h" or userChoice == "help" then 
                 self.help
@@ -864,6 +954,7 @@ Menu = {}
             end if
             package.user = active_user
             package.exePath = __AppPath
+            package.InstanceId = Guid
             package.Sig = "<size=""40px"">Unity"
             package.sigfile = package.thisC.File(__AppPath + "/sig.src")
             if package.sigfile then package.Sig = package.sigfile.get_content[3:-1]
@@ -1399,7 +1490,7 @@ Menu = {}
                     if pid == "-a" then
                         procs = show_procs(c).split(char(10))[1:]
                         if procs.len < 1 then return print("No procs found!".color(__errC))
-                        for proc in procs.wherenot("contains", "Xorg").wherenot("contains", "kernel_task").wherenot("contains", "Chat")
+                        for proc in procs.wherenot("contains", "Xorg").wherenot("contains", "kernel_task").wherenot("contains", "Chat").wherenot("contains", package.InstanceId)
                             kill(c, proc.split(" ")[1])
                         end for
                     else
@@ -1529,6 +1620,16 @@ Menu = {}
                     end for
                     ret = l.join(char(10))
                     print(ret)
+                end function
+            mainMap.brute = {}
+                mainMap.brute.use = "Usage: brute"
+                mainMap.brute.desc = "Launch Celestial Tools" + char(169) + " Brute if it is installed."
+                mainMap.brute.minPar = 0
+                mainMap.brute.alias = []
+                mainMap.brute.run = function(x)
+                    brute = package.Depth[0].shell.host_computer.File(__CelCoPath + "/brute")
+                    if not brute then return print("Brute not installed!".color(__errC))
+                    package.Depth[0].shell.launch("/usr/bin/Terminal.exe", brute.path + "/brute")
                 end function
             mainMap.tnet = {}
                 mainMap.tnet.use = "Usage: tnet <b>(-s/-l/-i/-v) [plate] [password]</b>"
@@ -2545,28 +2646,15 @@ Menu = {}
                     if not getD then return print("Couldn't find a place to drop!".color(__errC))
                     loc = getD.path
                     package.Depth[0].shell.scp(package.unity.path, loc, shell)
+                    shell.host_computer.File(loc + "/unity").rename(package.InstanceId)
                     package.Session = package.Session + 1
-                    launch(shell, loc + "/unity")
+                    launch(shell, loc + "/" + package.InstanceId)
                     package.thisC = host_computer(get_shell)
                     if package.Session != 0 then
                         package.Depth.remove(package.Session)
                         package.Session = package.Session -1
                     end if
                     mainMenu.displayInfo
-                end function
-            mainMap.terminal = {}
-                mainMap.terminal.use = "Usage: terminal"
-                mainMap.terminal.desc = "Open a terminal on target shell, <b>THIS WILL EXIT EXECUTION!</b>"
-                mainMap.terminal.minPar = 0
-                mainMap.terminal.alias = []
-                mainMap.terminal.run = function(x)
-                tgt = package.Depth[package.Session].target
-                if tgt.obj == "" then return print("You need to select a target shell".color(__errC))
-                shell = package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
-                if not shell isa __shell and typeof(shell) != "ftpshell" then return print("That isn't a shell!".color(__errC))
-                if user_input("THIS WILL EXIT EXECUTION AND LEAVE YOU STRANDED ON THE TARGET SHELL!!\nType ""start_terminal"" to continue:\n".color(__errC)) != "start_terminal" then return
-                start_terminal(shell)
-                exit
                 end function
             mainMap.alias = {}
                 mainMap.alias.use = "Usage: alias <b>(cmd)</b>"
@@ -2952,6 +3040,7 @@ Menu = {}
         print("<align=""center"">"+(("Metaxploit v" + package.Depth[0].Mx.ver + " | " + "Aptclient v" + package.Depth[0].Ac.ver).color("#5bcff9"))+"</align>")
         print("<align=""center"">"+(("Crypto " + package.Cr.pubIp + " - " + package.Cr.locIp + " v" + package.Cr.ver).color("#f5a8b8"))+"</align>")
         print("<align=""center"">"+(("Session# " + package.Session + " Loc " + package.thisC.public_ip + " - " + package.thisC.local_ip).color("white"))+"</align>")
+        print("<align=""center"">"+(("ID " + package.InstanceId).color("#f5a8b8"))+"</align>")
         print"<align=""center"">"+("#"*60)+"</align>"
         end function
     Menu.getTypeOf = function(dev)
@@ -3086,7 +3175,7 @@ Menu = {}
             target = "No Target!".color(__errC)
             if tgt.pub != "" then target = (tgt.pub + "-" + tgt.loc + "-" + tgt.lib + "-" + tgt.obj).color(__retC)
             print(info)
-            userChoice = user_input("<size=80%>" + target + "</size>" + "<pos=0%><voffset=-1.2em>" + "[" + active_user + "@" + package.thisC.get_name + " " + package.Session + "] <color=" + __promptC +">").trim
+            userChoice = user_input(("<size=80%>" + target + "</size>" + "<pos=0%><voffset=-1.2em>" + "[" + active_user + "@" + package.thisC.get_name + " " + package.Session + "] <color=" + __promptC +">"), 0, 0, 1).trim
             if userChoice == "" then continue
             if userChoice == "-h" or userChoice == "help" then 
                 self.help

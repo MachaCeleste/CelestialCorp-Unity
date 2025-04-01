@@ -1,0 +1,3195 @@
+__v="v2.1.13E"
+__promptC="#fc03a9"
+__retC="green"
+__errC="red"
+__useC="purple"
+__descC="#f5a8b8"
+__CelCoPath="/celestial"
+__AppPath=__CelCoPath+"/unity"
+__DbPath=__AppPath+"/VDB"
+package=@get_custom_object
+__shell=get_shell
+__computer=__shell.host_computer
+__file=__computer.File("/").__isa
+__computer=__computer.__isa
+__shell=__shell.__isa
+list.trim=function
+i=0
+for each in self
+if each=="" then self.remove(i)
+i=i+1
+end for
+end function
+Linq=function(e,k,v)
+if typeof(e)=="file" then
+if k=="namehas" then
+if e.name.is_match(v) then return true
+return false
+end if
+if k=="has_permission" then
+s=v.values
+c=""
+for p in s
+if e.has_permission(p) then c=c+p
+end for
+if c==v then return true
+return false
+end if
+end if
+if e isa string then
+if k=="is" then
+if e==v then return true
+return false
+end if
+if k=="contains" then
+if e.is_match(v) then return true
+return false
+end if
+end if
+if not e.values[0].hasIndex(k) then return print("Index "+k+" not found in map!".color(__errC))
+f=@e[k]
+if f(e)==v then return true
+return false
+end function
+list.first=function(k,v)
+for e in self
+if Linq(e,k,v) then return e
+end for
+return null
+end function
+list.where=function(k,v)
+r=[]
+for e in self
+if Linq(e,k,v) then r.push(e)
+end for
+if r.len>0 then return r
+return null
+end function
+list.wherenot=function(k,v)
+r=[]
+for e in self
+if not Linq(e,k,v) then r.push(e)
+end for
+if r.len>0 then return r
+end function
+string.regex_escape=function
+result=self
+for x in "+*?^$.[]{}()|/"
+result=result.replace("\"+x,"\"+x)
+end for
+return result
+end function
+isNullOrEmpty=function(x)
+if x isa string and (x==null or x=="") then return true
+if (x isa map or x isa list) and (x==null or x.len==0) then return true
+return false
+end function
+string.color=function(hexc)
+return "<color="+hexc+">"+self+"</color>"
+end function
+string.OwOify=function
+owoFaces=["OwO","Owo","owO","ÓwÓ","ÕwÕ","@w@","ØwØ","øwø","uwu","UwU","ҩwҩ","°w°","0w0","ѳwѳ"," Ѻw Ѻ","(owo)"]
+owoStrings=["OwO <b>what's this</b>","OwO <b>notices code</b>","uwu yu so warm~","owo <b>pounces on you~~</b>"]
+owoified=self.replace("r","w").replace("l","w").replace("R","W").replace("L","W")
+listify=owoified.values
+i=0
+for each in listify
+if each=="n" then
+if round(rnd)==0 then
+listify[i]="ny"
+else
+listify[i]="nya"
+end if
+end if
+if each=="!" then
+if round(rnd)==1 then owoified=owoified.replace("!",owoFaces[round(rnd*owoFaces.len)])
+end if
+if each=="?" then
+if round(rnd)==0 then
+listify[i]="?!"
+else
+listify[i]=owoFaces[round(rnd*owoFaces.len)]
+end if
+end if
+i=i+1
+end for
+owoified=listify.join("")
+if round(rnd*30)==7 then owoified=owoified+" "+owoStrings[round(rnd*owoStrings.len)]
+return owoified
+end function
+string.isAlphaNum=function
+if self.is_match("[^a-zA-Z0-9]") then return false
+return true
+end function
+string.isValidName=function
+if self.is_match("[^a-zA-Z0-9_.-]") then return false
+return true
+end function
+string.isValidPath=function
+if self.is_match("[^a-zA-Z0-9-_/.]") then return false
+return true
+end function
+Random={}
+Random.MaxValue=2147483647
+Random.MinValue=-2147483648
+Random._seedArray=[0]*56
+Random._inext=0
+Random.inextp=0
+Random.seed=null
+Random.init=function(seed)
+if not seed then seed=round((rnd*(self.MaxValue-self.MinValue))+self.MinValue)
+self.seed=seed
+num=0
+num2=abs(seed)
+if seed==self.MinValue then num2=self.MaxValue
+num3=161803398-num2
+self._seedArray[55]=num3
+num4=1
+for i in range(1,54)
+num=num+21
+if num>=55 then num=num-55
+self._seedArray[num]=num4
+num4=num3-num4
+if num4<0 then num4=num4+self.MaxValue
+num3=self._seedArray[num]
+end for
+for j in range(1,4)
+for k in range(1,55)
+num5=k+30
+if num5>=55 then num5=num5-55
+self._seedArray[k]=self._seedArray[k]-self._seedArray[1+num5]
+if self._seedArray[k]<0 then self._seedArray[k]=self._seedArray[k]+self.MaxValue
+end for
+end for
+self._inext=0
+self._inextp=21
+seed=1
+end function
+Random.Next=function(max,min=null)
+if not min then
+if max<0 then exit("Error: Max must be greater than zero.")
+return self.sample*max
+end if
+if min>max then exit("Error: Min cannot be greater than Max.")
+num=max-min
+if num<=2147483647 then return self.sample*num+min
+return self.getlongsample*num+min
+end function
+Random.sample=function
+return self.intsample*4.656612875245797e-10
+end function
+Random.intsample=function
+num=self._inext
+num2=self._inextp
+num=num+1
+if num>=56 then num=1
+num2=num2+1
+if num2>=56 then num2=1
+num3=self._seedArray[num]-self._seedArray[num2]
+if num3==2147483647 then num3=num3-1
+if num3<0 then num3=num3+self.MaxValue
+self._seedArray[num]=num3
+self.inext=num
+self.inextp=num2
+return num3
+end function
+Random.getlongsample=function
+num=self.intsample
+if self.intsample%2==0 then num=-num
+return (num+2147483646)/4294967293
+end function
+Guid=function(seed=null)
+getRandomHex=function(r)
+hexChars="0123456789abcdef"
+return hexChars[r.Next(hexChars.len)]
+end function
+random=new Random
+random.init(seed)
+guidFormat=[8,4,4,4,12]
+output=""
+i=0
+for place in guidFormat
+if i>0 then output=output+"-"
+n=0
+while n<place
+output=output+getRandomHex(random)
+n=n+1
+end while
+i=i+1
+end for
+return output
+end function
+Target={}
+Target.pub=""
+Target.loc=""
+Target.lib=""
+Target.obj=""
+User={}
+User.dev=""
+User.mail=""
+User.pass=""
+RshellServer={}
+RshellServer.Mx=null
+RshellServer.rshelld=null
+Tool={}
+Tool.lib=null
+Tool.pubIp=""
+Tool.locIp=""
+Tool.ver=""
+Object={}
+Object.access=""
+Object.obj=null
+Library={}
+Library.loc=""
+Library.ver=""
+Library.lib=null
+Library.objects=null
+Library.pobj=null
+Device={}
+Device.type=""
+Device.netsession=null
+Device.ports=null
+Device.rss=null
+Device.tnet=null
+Device.libs=null
+Network={}
+Network.debUser=""
+Network.debPass=""
+Network.devices=null
+Database={}
+Database.ind="abcdefghijklmnopqrstuvwxyz"
+Database.vectorWrite=function(lib,vector)
+hc=package.Depth[0].shell.host_computer
+findTarg=function(t)
+i=0
+for targdb in package.UnsecDb
+targv=targdb.get_content.split(char(10)).indexOf(t)
+if targv!=null then return Database.ind[i]+targv
+i=i+1
+end for
+return null
+end function
+mktargf=function(i)
+out=outer.hc.touch(__DbPath,"unsec"+i+".db")
+if out isa string then exit(out)
+return File(outer.hc,__DbPath+"/unsec"+i+".db")
+end function
+libdb=package.VDB.get_folders.first("name",lib.lib_name)
+if not libdb then
+print("Creating lib folder...")
+out=hc.create_folder(package.VDB.path,lib.lib_name)
+if out isa string then return print(("Folder creation "+out).color(__errC))
+libdb=package.VDB.get_folders.first("name",lib.lib_name)
+end if
+prime=lib.version.split("\.")[0]
+verdb=libdb.get_files.first("name",prime)
+if not verdb then
+print("Creating version file...")
+out=hc.touch(libdb.path,prime)
+if out isa string then return print(("File creation "+out).color(__errC))
+verdb=libdb.get_files.first("name",prime)
+end if
+sp=vector.split(":")
+mem=package.MemDb.get_content
+mems=[]
+memv=null
+if not mem=="" then
+mems=mem.split(char(10))
+memv=mems.indexOf(sp[1])
+end if
+if memv==null then
+mems.push(sp[1])
+memv=mems.len-1
+out=package.MemDb.set_content(mems.join(char(10)).trim)
+if out isa string then print("Write mem.db "+out)
+end if
+sp[1]=memv
+targv=findTarg(sp[2])
+if targv==null then
+curr=package.UnsecDb.len-1
+targ=package.UnsecDb[curr].get_content
+targs=[]
+if not targ=="" then targs=targ.split(char(10))
+targv=Database.ind[curr]+targs.len
+if targs.join(char(10))>=160000 then
+curr=curr+1
+mktargf(curr)
+targs=[]
+end if
+targs.push(sp[2])
+out=package.UnsecDb[curr].set_content(targs.join(char(10)).trim)
+if out isa string then print("Write unsec"+curr+".db "+out)
+end if
+sp[2]=targv
+vector=sp.join(":")
+data=verdb.get_content
+vectors=[]
+if data!="" then
+vectors=data.split(char(10))
+match=vectors.first("contains",(sp[0]+":"+sp[1]+":"+sp[2]+":").regex_escape)
+if match then
+print("[old] "+match)
+print("[new] "+vector)
+if user_input("Would you like to overwrite? (y/N): ")=="y" then vectors=vectors.replace(match,vector)
+else
+vectors.push(vector)
+end if
+else
+vectors.push(vector)
+end if
+out=verdb.set_content(vectors.join(char(10)))
+if out isa string then print("Write VDB "+out)
+end function
+Database.vectorRead=function(lib)
+libdb=package.VDB.get_folders.first("name",lib.lib_name)
+if not libdb then return null
+vsplit=lib.version.split("\.")
+prime=vsplit[0]
+sub=vsplit[1]+"."+vsplit[2]
+libdb=libdb.get_files.first("name",prime)
+if not libdb then return null
+vectors=libdb.get_content.split(char(10)).where("contains",sub+":\d+:\w\d+:")
+for vector in vectors
+i=vectors.indexOf(vector)
+sp=vector.split(":")
+sp[1]=package.MemDb.get_content.split(char(10))[sp[1].to_int]
+sp[2]=package.UnsecDb[Database.ind.indexOf(sp[2][0])].get_content.split(char(10))[sp[2][1:].to_int]
+vectors[i]=sp.join(":")
+end for
+return vectors
+end function
+FXploreMenu={}
+FXploreMenu.folder=null
+FXploreMenu.shell=null
+FXploreMenu.computer=null
+FXploreMenu.access=null
+FXploreMenu.init=function(obj)
+fxploreMap={}
+fxploreMap.cat={}
+fxploreMap.cat.use="Usage: cat <b>(file) [-d]</b>"
+fxploreMap.cat.desc="Read a files contents, content can be downloaded."
+fxploreMap.cat.level="folder"
+fxploreMap.cat.minPar=1
+fxploreMap.cat.run=function(x)
+file=mainMenu.fx.folder.get_files.first("name",x[0])
+if not file then return print("File not found!".color(__errC))
+if file.is_folder or file.is_binary then return print("I can't read this, it may be a folder, bin or log".color(__errC))
+if not file.has_permission("r") then return print("I don't have permission to read that".color(__errC))
+if not x.hasIndex(1) or x[1]!="-d" then
+l=[]
+for line in file.get_content.split(char(10))
+l.push(line.color(__retC))
+end for
+print(l.join(char(10)))
+return 
+end if
+hc=package.Depth[0].shell.host_computer
+out=hc.touch("/root/Downloads/",x[0])
+if out isa string then return print(out.color(__errC))
+hfile=hc.File("/root/Downloads/"+x[0])
+if not hfile then return print("Couldn't find file!".color(__errC))
+out=hfile.set_content(file.get_content)
+if out isa string then return print(out.color(__errC))
+end function
+fxploreMap.cd={}
+fxploreMap.cd.use="Usage: cd <b>(folder/../absPath)</b>"
+fxploreMap.cd.desc="Change directories, can use absolute or direct pathing."
+fxploreMap.cd.level="folder"
+fxploreMap.cd.minPar=1
+fxploreMap.cd.run=function(x)
+p=x[0]
+folder=mainMenu.fx.folder
+navigate=function(input)
+if input==".." and parent(folder) then
+f=parent(folder)
+else if input!=".." then
+f=folder.get_folders.first("name",input)
+else
+return "Already at root!".color(__errC)
+end if
+if f==null then return "Folder not found!".color(__errC)
+return f
+end function
+if p.indexOf("/")!=null then
+if p[0]=="/" then
+folder=mainMenu.toRoot(mainMenu.fx.folder)
+p=p[1:]
+end if
+if p!="" then
+steps=p.split("/")
+for step in steps
+ret=navigate(step)
+if ret isa string then return print(ret)
+folder=ret
+end for
+end if
+else
+ret=navigate(x[0])
+if ret isa string then
+if ret!="Folder not found!".color(__errC) then return print(ret)
+files=mainMenu.fx.find(x[0])
+if files isa string then return print(files)
+if not files then return print("Folder of that name not found in system!".color(__errC))
+if files.len>1 then
+out="Sel Permissions Path"
+n=1
+l=[]
+for file in files
+if not file.is_folder then continue
+out=out+"\n["+n+"] "+file.permissions+" "+file.size+" "+file.path
+l.push(file)
+n=n+1
+end for
+print(format_columns(out))
+s=user_input("Selection: ").to_int
+if not s isa number or s>l.len then return print("Invalid selection!".color(__errC))
+ret=l[s-1]
+else
+ret=files[0]
+end if
+end if
+folder=ret
+end if
+mainMenu.fx.folder=folder
+end function
+fxploreMap.chgrp={}
+fxploreMap.chgrp.use="Usage: chgrp <b>(group) (file/folder) [-R]</b>"
+fxploreMap.chgrp.desc="Change file/folder group, can be recursive."
+fxploreMap.chgrp.level="folder"
+fxploreMap.chgrp.minPar=2
+fxploreMap.chgrp.run=function(x)
+isRecursive=0
+file=mainMenu.fx.folder
+if x[1]!="." then file=(mainMenu.fx.folder.get_folders+mainMenu.fx.folder.get_files).first("name",x[1])
+if x.hasIndex(2) and x[2]=="-R" then isRecursive=1
+if not file then return print("File not found!".color(__errC))
+out=file.set_group(x[0],isRecursive)
+if out then return print(out.color(__errC))
+print("Group set!".color(__retC))
+end function
+fxploreMap.chmod={}
+fxploreMap.chmod.use="Usage: chmod <b>(perms) [file/folder]/[-R]</b>"
+fxploreMap.chmod.desc="Change file/folder permissions, can be recursive."
+fxploreMap.chmod.level="folder"
+fxploreMap.chmod.minPar=1
+fxploreMap.chmod.run=function(x)
+isRecursive=0
+file=mainMenu.fx.folder
+if (not x.hasIndex(2) and x.hasIndex(1) and x[1]=="-R") or (x.hasIndex(2) and x[2]=="-R") then isRecursive=1
+if x.hasIndex(1) and x[1]!="." then file=(mainMenu.fx.folder.get_folders+mainMenu.fx.folder.get_files).first("name",x[1])
+if not file then return print("File not found!".color(__errC))
+out=file.chmod(x[0],isRecursive)
+if out then return print(out.color(__errC))
+print("Perms set!".color(__retC))
+end function
+fxploreMap.chown={}
+fxploreMap.chown.use="Usage: chown <b>(owner) (file/folder) [-R]</b>"
+fxploreMap.chown.desc="Change file/folder owner, can be recursive."
+fxploreMap.chown.level="folder"
+fxploreMap.chown.minPar=2
+fxploreMap.chown.run=function(x)
+isRecursive=0
+file=mainMenu.fx.folder
+if x[1]!="." then file=(mainMenu.fx.folder.get_folders+mainMenu.fx.folder.get_files).first("name",x[1])
+if x.hasIndex(2) and x[2]=="-R" then isRecursive=1
+if not file then return print("File not found!".color(__errC))
+out=file.set_owner(x[0],isRecursive)
+if out then return print(out.color(__errC))
+print("Owner set!".color(__retC))
+end function
+fxploreMap.cp={}
+fxploreMap.cp.use="Usage: cp <b>(file/folder) (newName) [path]</b>"
+fxploreMap.cp.desc="Copy file/folder with new name, can give absolute path, requires new name if copying to same directory."
+fxploreMap.cp.level="folder"
+fxploreMap.cp.minPar=2
+fxploreMap.cp.run=function(x)
+if not x[1].isValidName then return print("Invalid name!".color(__errC))
+path=mainMenu.fx.folder.path
+isAbsolute=false
+if x.hasIndex(2) and x[2]!="" then isAbsolute=true
+if isAbsolute and x[1]==x[0] then return print("You must change the name to copy to the same dir!".color(__errC))
+if isAbsolute then path=x[2]
+if not path.isValidPath then return print("Invalid path!".color(__errC))
+file=mainMenu.fx.folder
+if x[0]!="." then file=(mainMenu.fx.folder.get_folders+mainMenu.fx.folder.get_files).first("name",x[0])
+if not file then return print("File not found!".color(__errC))
+out=file.copy(path,x[1])
+if out and out!=1 then return print(out.color(__errC))
+print("File copied!".color(__retC))
+end function
+fxploreMap.crack={}
+fxploreMap.crack.use="Usage: crack <b>(md5/file)</b>"
+fxploreMap.crack.desc="Crack an md5/file, will crack entire file if given."
+fxploreMap.crack.level="folder"
+fxploreMap.crack.minPar=1
+fxploreMap.crack.run=function(x)
+file=mainMenu.fx.folder.get_files.first("name",x[0])
+if not file then
+if x[0].len<32 or not x[0].isAlphaNum then return print("File not found or not an md5!".color(__errC))
+dec=decipher(package.Cr.lib,x[0])
+if dec isa string then return print(("Output: "+dec).color(__retC))
+return print("Couldn't decipher hash!".color(__errC))
+end if
+if not file.has_permission("r") then return print("No permission to read that file!".color(__errC))
+accounts=file.get_content.split(char(10))
+out="ACCOUNT PASSWORD"
+for account in accounts
+if account=="" then continue
+if account.indexOf(":")==null or account.split(":")[1].len<32 then return print("Error parsing file!".color(__errC)+"\nContent:\n"+accounts)
+enc=account.split(":")
+dec=decipher(package.Cr.lib,enc[1])
+out=out+char(10)+enc[0]+" "+dec
+end for
+out=format_columns(out)
+l=[]
+for line in out.split(char(10))
+l.push(line.color(__retC))
+end for
+out=l.join(char(10))
+print(out)
+end function
+fxploreMap.mv={}
+fxploreMap.mv.use="Usage: mv <b>(file/folder) (newName) (path)</b>"
+fxploreMap.mv.desc="Move a file/folder with a new name to an absolute path, will overwrite existing file."
+fxploreMap.mv.level="folder"
+fxploreMap.mv.minPar=3
+fxploreMap.mv.run=function(x)
+if not x[1].isValidName then return print("Invalid name!".color(__errC))
+if not x[2].isValidPath then return print("Invalid path!".color(__errC))
+file=mainMenu.fx.folder
+if x[0]!="." then file=(mainMenu.fx.folder.get_folders+mainMenu.fx.folder.get_files).first("name",x[0])
+if not file then return print("File not found!".color(__errC))
+out=file.move(x[2],x[1])
+if out and out isa string then return print(out.color(__errC))
+print("Move complete!".color(__retC))
+end function
+fxploreMap.ln={}
+fxploreMap.ln.use="Usage: ln <b>(file/folder) (newName) (path)</b>"
+fxploreMap.ln.desc="Make a symbolic link to a file or folder at the specified path."
+fxploreMap.ln.level="folder"
+fxploreMap.ln.minPar=3
+fxploreMap.ln.run=function(x)
+if not x[1].isValidName then return print("Invalid name!".color(__errC))
+if not x[2].isValidPath then return print("Invalid path!".color(__errC))
+file=mainMenu.fx.folder
+if x[0]!="." then file=(mainMenu.fx.folder.get_folders+mainMenu.fx.folder.get_files).first("name",x[0])
+if not file then return print("File not found!".color(__errC))
+out=file.symlink(x[2],x[1])
+if out isa string then return print(out.color(__errC))
+print("Symlink created!".color(__retC))
+end function
+fxploreMap.rm={}
+fxploreMap.rm.use="Usage: rm <b>(file/folder/*) [-r]</b>"
+fxploreMap.rm.desc="Remove file/folder, star will remove everything in current directory, recursive for folders when not star."
+fxploreMap.rm.level="folder"
+fxploreMap.rm.minPar=1
+fxploreMap.rm.run=function(x)
+file=mainMenu.fx.folder.get_files.first("name",x[0])
+isRecursive=0
+isAll=0
+if x.hasIndex(1) and x[1]=="-r" then
+if x[0]=="" then return print("you must designate a folder!".color(__errC))
+isRecursive=1
+file=mainMenu.fx.folder.get_folders.first("name",x[0])
+else if x[0]=="*" then
+isAll=1
+file=mainMenu.fx.folder
+end if
+if not file then return print("File not found!".color(__errC))
+if not file.has_permission("w") then return print("Permission denied!".color(__errC))
+if file.is_folder and isRecursive==0 and isAll==0 then
+return print("That is a directory".color(__errC))
+else if file.is_folder and isAll==1 then
+for each in file.get_folders+file.get_files
+out=each.delete
+if out.len>0 then return print(out.color(__errC))
+end for
+else
+out=file.delete
+if out.len>0 then return print(out.color(__errC))
+end if
+print("Remove complete!".color(__retC))
+end function
+fxploreMap.set={}
+fxploreMap.set.use="Usage: set <b>(file) [-u hostfilepath]</b>"
+fxploreMap.set.desc="Set content of file, can upload content from absolute path from home system."
+fxploreMap.set.level="folder"
+fxploreMap.set.minPar=1
+fxploreMap.set.run=function(x)
+file=mainMenu.fx.folder.get_files.first("name",x[0])
+if not file then return print("File not found!".color(__errC))
+if not file.has_permission("w") then return print("You don't have permission!".color(__errC))
+i=""
+if x.hasIndex(1) and x.hasIndex(2) and x[1]=="-u" and x[2]!="" then
+hc=package.Depth[0].shell.host_computer
+hfile=hc.File(x[2])
+if not hfile then return print("Couldn't find file!".color(__errC))
+i=hfile.get_content
+else
+i=user_input("Input content:\n")
+end if
+out=file.set_content(i)
+if out isa string then return print(out.color(__errC))
+print("Content set!".color(__retC))
+end function
+fxploreMap.owoset={}
+fxploreMap.owoset.use="Usage: owoset <b>(file)</b>"
+fxploreMap.owoset.desc="Set content of file parsed with OwOify."
+fxploreMap.owoset.level="folder"
+fxploreMap.owoset.minPar=1
+fxploreMap.owoset.run=function(x)
+file=mainMenu.fx.folder.get_files.first("name",x[0])
+if not file then return print("File not found!".color(__errC))
+if not file.has_permission("w") then return print("You don't have permission!".color(__errC))
+i=user_input("Input content:\n")
+out=file.set_content(i.OwOify)
+if out isa string then return print(out.color(__errC))
+print("Content OwOset!".color(__retC))
+end function
+fxploreMap.search={}
+fxploreMap.search.use="Usage: search <b>(file)</b>"
+fxploreMap.search.desc="Find file within system by name"
+fxploreMap.search.level="folder"
+fxploreMap.search.minPar=1
+fxploreMap.search.run=function(x)
+files=mainMenu.fx.find(x[0])
+out="Permissions Path"
+for f in files
+bin=""
+if f.is_binary and not f.is_folder then bin=" <b>bin</b>".color("purple")
+out=out+"\n"+f.permissions+" "+f.path+bin
+end for
+print(format_columns(out))
+end function
+fxploreMap.touch={}
+fxploreMap.touch.use="Usage: touch <b>(name) [path]</b>"
+fxploreMap.touch.desc="Make a new file with given name, path can be absolute."
+fxploreMap.touch.level="computer"
+fxploreMap.touch.minPar=1
+fxploreMap.touch.run=function(x)
+if not x[0].isValidName then return print("Invalid filename!".color(__errC))
+path=mainMenu.fx.folder.path
+if x.hasIndex(1) and x[1]!="" then path=x[1]
+if not path.isValidPath then return print("Invalid path!".color(__errC))
+out=mainMenu.fx.computer.touch(path,x[0])
+if out isa string then return print(out.color(__errC))
+print("File created!".color(__retC))
+end function
+fxploreMap.mkdir={}
+fxploreMap.mkdir.use="Usage: mkdir <b>(name) [path]</b>"
+fxploreMap.mkdir.desc="Make a new directory with given name, path can be absolute."
+fxploreMap.mkdir.level="computer"
+fxploreMap.mkdir.minPar=1
+fxploreMap.mkdir.run=function(x)
+if not x[0].isValidName then return print("Invalid name!".color(__errC))
+path=mainMenu.fx.folder.path
+if x[1]!="" then path=x[1]
+if not path.isValidPath then return print("Invalid path!".color(__errC))
+out=mainMenu.fx.computer.create_folder(path,x[0])
+if out and out!=1 then return print(out.color(__errC))
+print("Directory created!".color(__retC))
+end function
+fxploreMap.groups={}
+fxploreMap.groups.use="Usage: groups <b>(user)</b>"
+fxploreMap.groups.desc="Show all groups specified user has."
+fxploreMap.groups.level="computer"
+fxploreMap.groups.minPar=1
+fxploreMap.groups.run=function(x)
+out=mainMenu.fx.computer.groups(x[0])
+if not out then return print("User or group not found".color(__errC))
+print(out)
+end function
+fxploreMap.groupadd={}
+fxploreMap.groupadd.use="Usage: groupadd <b>(user) (group)</b>"
+fxploreMap.groupadd.desc="Add group to given user, requires root."
+fxploreMap.groupadd.level="computer"
+fxploreMap.groupadd.minPar=2
+fxploreMap.groupadd.run=function(x)
+out=mainMenu.fx.computer.create_group(x[0],x[1])
+if out isa string then return print(out.color(__errC))
+print("Group added to user".color(__retC))
+end function
+fxploreMap.groupdel={}
+fxploreMap.groupdel.use="Usage: groupdel <b>(user) (group)</b>"
+fxploreMap.groupdel.desc="Remove group from given user, requires root."
+fxploreMap.groupdel.level="computer"
+fxploreMap.groupdel.minPar=2
+fxploreMap.groupdel.run=function(x)
+out=mainMenu.fx.computer.delete_group(x[0],x[1])
+if out isa string then return print(out.color(__errC))
+print("Group deleted from user".color(__retC))
+end function
+fxploreMap.useradd={}
+fxploreMap.useradd.use="Usage: useradd <b>(user) [-temp]</b>"
+fxploreMap.useradd.desc="Add a user with given name to system, can make and delete temp user to regenerate passwd, requires root."
+fxploreMap.useradd.level="computer"
+fxploreMap.useradd.minPar=1
+fxploreMap.useradd.run=function(x)
+if not x[0].isAlphaNum or x[0].len>15 then return print("Names must be 15 chars or less and be alphanumeric!".color(__errC))
+pass="test"
+if not x.hasIndex(1) or x[1]!="-temp" then pass=user_input("Please enter a password for user "+x[0]+char(10),1).trim
+if not pass.isAlphaNum or pass.len>15 then return print("Password must be 15 characters or less and be alphanumeric!".color(__errC))
+out=mainMenu.fx.computer.create_user(x[0],pass)
+if not out isa string and x.hasIndex(1) and x[1]=="-temp" then
+out=mainMenu.fx.computer.delete_user(x[0],1)
+if out isa string then return print(("Deletion: "+out).color(__errC))
+return print("Temp user made and deleted!".color(__retC))
+else
+return print(("Creation: "+out).color(__errC))
+end if
+print("User created!".color(__retC))
+end function
+fxploreMap.userdel={}
+fxploreMap.userdel.use="Usage: userdel <b>(user) [-r]</b>"
+fxploreMap.userdel.desc="Remove a user with given name from system, requires root."
+fxploreMap.userdel.level="computer"
+fxploreMap.userdel.minPar=1
+fxploreMap.userdel.run=function(x)
+del=0
+if x.hasIndex(1) and x[1]=="-r" then del=1
+out=mainMenu.fx.computer.delete_user(x[0],del)
+if out isa string then return print(out.color(__errC))
+print("User deleted!".color(__retC))
+end function
+fxploreMap.download={}
+fxploreMap.download.use="Usage: download <b>(file/folder) [-a/-r]</b>"
+fxploreMap.download.desc="Download file/folder to /root/Downloads."
+fxploreMap.download.level="shell"
+fxploreMap.download.minPar=1
+fxploreMap.download.run=function(x)
+r="/"
+if x.hasIndex(1) and x[1]=="-r" then r=""
+filepath=mainMenu.fx.folder.path+r+x[0]
+if x.hasIndex(1) and x[1]=="-a" then filepath=x[0]
+downloads="/root/Downloads"
+if package.user!="root" then downloads="/home/"+package.user+"/Downloads"
+out=scp(mainMenu.fx.shell,filepath,downloads,package.Depth[0].shell)
+if not out then return print("SCP: Failed to download file!".color(__errC))
+if out isa string then return print(out.color(__errC))
+print("Download complete!".color(__retC))
+end function
+fxploreMap.upload={}
+fxploreMap.upload.use="Usage: upload <b>(file/folder absolute path) [new name]</b>"
+fxploreMap.upload.desc="Upload file/folder from absolute path on home system to current folder, can provide new name."
+fxploreMap.upload.level="shell"
+fxploreMap.upload.minPar=1
+fxploreMap.upload.run=function(x)
+if x.hasIndex(1) and not x[1].isValidName then return print("Invalid new name!".color(__errC))
+p=mainMenu.fx.folder.path
+out=package.Depth[0].shell.scp(x[0],p,mainMenu.fx.shell)
+if out isa string then return print(out.color(__errC))
+if x.hasIndex(1) then
+file=mainMenu.fx.computer.File(p+"/"+x[0].split("/")[-1])
+if not file then return print("Couldn't get file!".color(__errC))
+out=file.move(p,x[1])
+if not out then return print("SCP: Failed to upload file!".color(__errC))
+if out isa string then return print(out.color(__errC))
+end if
+print("Upload complete!".color(__retC))
+end function
+fxploreMap.launch={}
+fxploreMap.launch.use="Usage: launch <b>(file) [params]</b>"
+fxploreMap.launch.desc="Launch a file on the target system."
+fxploreMap.launch.level="shell"
+fxploreMap.launch.minPar=1
+fxploreMap.launch.run=function(x)
+file=mainMenu.fx.folder.get_files.first("name",x[0])
+if not file then return print("File not found!".color(__errC))
+print("This will launch a program on the target system and more than likely fuck your whole day!".color(__errC))
+s=user_input("<b>ARE YOU SURE YOU WANT TO DO THIS?</b> (y/N) ",0,1)
+if s!="y" then return print("Good choice!".color(__retC))
+s=user_input("ARE YOU SURE YOU KNOW WHAT YOURE DOING?? (y/N) ".color(__errC),0,1)
+if s!="y" then return print("Good choice!".color(__retC))
+if not file.is_binary or file.is_folder then return print("File must be a binary!".color(__errC))
+print("Good luck...")
+mainMenu.BackupGco
+mainMenu.ClearGco
+if x.len>1 then
+launch(mainMenu.fx.shell,file.path,x[1:].join(" "))
+else
+launch(mainMenu.fx.shell,file.path)
+end if
+mainMenu.RestoreGco
+print("Well we didn't burst into flames yet...")
+end function
+fxploreMap.exit={}
+fxploreMap.exit.use="Usage: exit"
+fxploreMap.exit.desc="Exits fxplore system."
+fxploreMap.exit.level="file"
+fxploreMap.exit.minPar=0
+fxploreMap.exit.run=function(x)
+end function
+x=new self
+x.cmd=fxploreMap
+x.access=mainMenu.probe(obj)
+if obj isa __shell or typeof(obj)=="ftpshell" then
+x.shell=obj
+x.computer=host_computer(obj)
+x.folder=File(x.computer,"/")
+else if obj isa __computer then
+x.computer=obj
+x.folder=File(x.computer,"/")
+else if obj isa __file then
+x.folder=mainMenu.toRoot(obj)
+end if
+return x
+end function
+FXploreMenu.find=function(x)
+fs=[]
+get=function(i)
+fs.push(i)
+for f in i.get_files
+fs.push(f)
+end for
+for f in i.get_folders
+get(f)
+end for
+end function
+get(mainMenu.toRoot(self.folder))
+files=fs.where("name",x)
+if files==null or files.len==0 then return print("File not found!".color(__errC))
+return files
+end function
+FXploreMenu.ls=function
+info="PERMISSIONS OWNER GROUP SIZE FILENAME"
+info=info+char(10)+self.folder.permissions+" "+self.folder.owner+" "+self.folder.group+" "+self.folder.size+" /."
+all=self.folder.get_folders+self.folder.get_files
+if all.len==0 then return print((("#"*15)+" Folder Empty "+("#"*15)).color(__errC))
+for each in all
+isf=""
+isb=""
+if each.is_folder then
+isf="/"
+else if each.is_binary and not each.is_folder then
+isb=" <b>bin</b>".color("purple")
+end if
+iss=""
+if each.is_symlink and not each.path.is_match(".Trash") then iss=(" -> "+each.path(1))
+info=info+char(10)+each.permissions+" "+each.owner+" "+each.group+" "+each.size+" "+isf+each.name+iss+isb
+end for
+print(format_columns(info))
+end function
+FXploreMenu.help=function
+for each in self.cmd.indexes
+level=""
+if self.cmd[each].level=="folder" then level="file"
+if self.cmd[each].level=="computer" then level="computer"
+if self.cmd[each].level=="shell" then level="shell"
+if self.cmd[each].hasIndex("run") and self.cmd[each].hasIndex("desc") then print(self.cmd[each].use.color(__useC)+"\n"+self.cmd[each.lower].desc.color(__descC)+"\n"+("Requires: "+level).color(__descC))
+end for
+end function
+FXploreMenu.run=function
+x="file"
+n="Unknown"
+if self.computer then
+x="computer"
+n=self.computer.get_name
+end if
+if self.shell then
+x="shell"
+n=self.computer.get_name
+end if
+print(("Launching FXplore at <b>"+x+"</b> level...").color("#5bcff9"))
+while true
+self.ls
+userChoice=user_input(("["+self.access+"@"+n+" "+self.folder.path+"] <color="+__promptC+">"),0,0,1).trim
+if userChoice=="" then continue
+if userChoice=="-h" or userChoice=="help" then
+self.help
+continue
+end if
+userChoice=userChoice.split(" ")
+if userChoice[0]=="exit" then return print("Closing FXplore...".color("#f5a8b8"))
+if self.cmd.hasIndex(userChoice[0].lower) then
+level=""
+if self.cmd[userChoice[0].lower].level=="folder" then level="file"
+if self.cmd[userChoice[0].lower].level=="computer" then level="computer"
+if self.cmd[userChoice[0].lower].level=="shell" then level="shell"
+if not self[self.cmd[userChoice[0].lower].level] then
+print("Incorrect level, that command requires a "+level+" object!")
+continue
+end if
+if self.cmd[userChoice[0].lower].minPar>userChoice[1:].len or userChoice[1]=="-h" then
+print(self.cmd[userChoice[0].lower].use.color(__useC)+"\n"+self.cmd[userChoice[0].lower].desc.color(__descC)+"\n"+("Requires: "+level).color(__descC))
+continue
+end if
+f=@self.cmd[userChoice[0].lower].run
+if userChoice.len>1 then f(userChoice[1:]) else f
+else
+print("Invalid command!".color(__errC))
+end if
+end while
+end function
+Menu={}
+Menu.fx=null
+Menu.fMap=null
+Menu.gco=null
+Menu.init=function
+isShellLaunch=false
+if package.hasIndex("Depth") then isShellLaunch=true
+if isShellLaunch then print("Shell launch...")
+package.thisC=host_computer(get_shell)
+if not isShellLaunch then
+if active_user!="root" then exit("Unity must be run as root for multiple functions to work!".color(__errC))
+print("\n<align=""center"">Celestial Tools"+char(169)+"</align>\n<align=""center""><size=50px>Unity</size></align>\n<align=""center"">"+__v+"-Ultimate</align>\n")
+print("Initializing...")
+if not program_path.split("/")[-1].is_match("unity") then package.thisC.File(program_path).move(program_path.split("/")[:-1].join("/"),"unity")
+package.unity=package.thisC.File(program_path.split("/")[:-1].join("/")+"/unity")
+appPath=package.thisC.File(__AppPath)
+if not appPath then
+print("AppPath not found, creating...")
+last="/"
+for step in __AppPath.split("/")
+if isNullOrEmpty(step) then continue
+out=package.thisC.create_folder(last,step)
+if out isa string then exit(("AppPath creation "+out).color(__errC))
+if last=="/" then
+last=last+step
+else
+last=last+"/"+step
+end if
+end for
+end if
+package.user=active_user
+package.exePath=__AppPath
+package.InstanceId=Guid
+package.Sig="<size=""40px"">Unity"
+package.sigfile=package.thisC.File(__AppPath+"/sig.src")
+if package.sigfile then package.Sig=package.sigfile.get_content[3:-1]
+package.Session=0
+package.Depth={}
+package.Netmap={}
+self.updateLibs
+package.MxF=package.thisC.File(__AppPath+"/metaxploit.so")
+package.CrF=package.thisC.File(__AppPath+"/crypto.so")
+package.AcF=package.thisC.File(__AppPath+"/aptclient.so")
+package.librshell=package.thisC.File(__AppPath+"/librshell.so")
+package.libssh=package.thisC.File(__AppPath+"/libssh.so")
+package.libtraffic=package.thisC.File(__AppPath+"/libtrafficnet.so")
+amap=package.thisC.File(__AppPath+"/alias.map")
+if not amap then
+print("Alias map not found, creating new alias map...")
+out=package.thisC.touch(__AppPath,"alias.map")
+if out isa string then exit(("Alias map creation "+out).color(__errC))
+amap=package.thisC.File(__AppPath+"/alias.map")
+end if
+package.aliasmap=amap
+vdb=package.thisC.File(__DbPath)
+if not vdb then
+print("Database not found, creating new database...")
+out=package.thisC.create_folder(__AppPath,"VDB")
+if out isa string then exit(("Database creation "+out).color(__errC))
+vdb=package.thisC.File(__DbPath)
+end if
+package.VDB=vdb
+memdb=package.thisC.File(__DbPath+"/mem.db")
+if not memdb then
+print("Memory database not found, creating new database...")
+out=package.thisC.touch(__DbPath,"mem.db")
+if out isa string then exit(("Memory creation "+out).color(__errC))
+memdb=package.thisC.File(__DbPath+"/mem.db")
+end if
+package.MemDb=memdb
+unsecdb=[]
+i=0
+for db in package.VDB.get_files.where("namehas","unsec")
+unsecdb.push(package.thisC.File(__DbPath+"/unsec"+i+".db"))
+i=i+1
+end for
+if unsecdb.len==0 then
+print("Target database not found, creating new database...")
+out=package.thisC.touch(__DbPath,"unsec0.db")
+if out isa string then exit(("Target creation "+out).color(__errC))
+unsecdb.push(package.thisC.File(__DbPath+"/unsec0.db"))
+end if
+package.UnsecDb=unsecdb
+end if
+package.Depth[package.Session]={}
+package.Depth[package.Session].shell=get_shell
+package.Depth[package.Session].target=new Target
+self.incMx
+self.incAc
+if not isShellLaunch then
+self.incCr
+end if
+mainMap={}
+mainMap.cls={}
+mainMap.cls.use="Usage: cls <b>[-i]</b>"
+mainMap.cls.desc="Clear screen, optionally display info."
+mainMap.cls.minPar=0
+mainMap.cls.alias=[]
+mainMap.cls.run=function(x)
+clear_screen
+if x and x[0]=="-i" then mainMenu.displayInfo
+end function
+mainMap.info={}
+mainMap.info.use="Usage: info"
+mainMap.info.desc="Show session info."
+mainMap.info.minPar=0
+mainMap.info.alias=[]
+mainMap.info.run=function(x)
+mainMenu.displayInfo
+end function
+mainMap.portscan={}
+mainMap.portscan.use="Usage: portscan <b>(web/ip/-r)</b>"
+mainMap.portscan.desc="Scan a given web/ip address and add it to netmap, also features random."
+mainMap.portscan.minPar=1
+mainMap.portscan.alias=[]
+mainMap.portscan.run=function(x)
+address=x[0]
+if x[0]=="-r" then address=mainMenu.rndIp
+if not is_valid_ip(address) then address=nslookup(address)
+if not is_valid_ip(address) then return print("That isn't a valid IP, TF are you doing?".color(__errC))
+mainMenu.portscan(address)
+end function
+mainMap.whois={}
+mainMap.whois.use="Usage: whois <b>(web/ip/-r)</b>"
+mainMap.whois.desc="Show info for web/ip address, also features random."
+mainMap.whois.minPar=1
+mainMap.whois.alias=[]
+mainMap.whois.run=function(x)
+address=x[0]
+if address=="-r" then address=mainMenu.rndIp
+if not is_valid_ip(address) then address=nslookup(address)
+if not is_valid_ip(address) then return print("That isn't a valid IP, TF are you doing?".color(__errC))
+print("Address: "+address.color(__retC))
+print(whois(address))
+end function
+mainMap.routerscan={}
+mainMap.routerscan.use="Usage: routerscan <b>(web/ip/-r)</b>"
+mainMap.routerscan.desc="Scan router firewall rules at web/ip address, also features random."
+mainMap.routerscan.minPar=1
+mainMap.routerscan.alias=[]
+mainMap.routerscan.run=function(x)
+address=x[0]
+if x[0]=="-r" then address=mainMenu.rndIp
+if not is_valid_ip(address) then address=nslookup(address)
+if not is_valid_ip(address) then return print("That isn't a valid IP, TF are you doing?".color(__errC))
+print("Address: "+address.color(__retC))
+mainMenu.routerscan(address)
+end function
+mainMap.smtpdump={}
+mainMap.smtpdump.use="Usage: smtpdump <b>(address) [port]</b>"
+mainMap.smtpdump.desc="Dump users within the smtp database at the address"
+mainMap.smtpdump.minPar=1
+mainMap.smtpdump.alias=[]
+mainMap.smtpdump.run=function(x)
+address=x[0]
+if not is_valid_ip(address) then return print("That isn't a valid IP".color(__errC))
+port=25
+if x.hasIndex(1) and typeof(x[1].to_int)=="number" then port=x[1].to_int
+pubIp=address
+cr=package.Cr.lib
+if is_lan_ip(address) then
+cr=mainMenu.tempCr
+if cr isa string then return print(cr)
+cr=cr.lib
+pubIp=package.thisC.public_ip
+end if
+dump=cr.smtp_user_list(address,port)
+if dump isa string then return print(dump.color(__errC))
+out="No users found!".color(__errC)
+if dump.len>1 then
+out="Username Email"
+for each in dump
+if each.is_match("root") then continue
+data=each.split(" ")
+email=data[1:].join
+if each.is_match("email") then
+info=whois(pubIp)
+domain=info.split(char(10))[0].split(": www.")[1]
+email=data[0]+"@"+domain
+end if
+out=out+char(10)+data[0]+" "+email
+end for
+out=format_columns(out)
+end if
+print(out)
+end function
+mainMap.netscan={}
+mainMap.netscan.use="Usage: netscan"
+mainMap.netscan.desc="Scan the relative network and store info to netmap."
+mainMap.netscan.minPar=0
+mainMap.netscan.alias=[]
+mainMap.netscan.run=function(x)
+package.devList=[]
+router=get_router
+mainMenu.getDevicesOf(router)
+mainMenu.parse(router.public_ip)
+package.devList=null
+end function
+mainMap.owoify={}
+mainMap.owoify.use="Usage: owoify"
+mainMap.owoify.desc="OwOify input text."
+mainMap.owoify.minPar=0
+mainMap.owoify.alias=[]
+mainMap.owoify.run=function(x)
+i=user_input("Input: ").OwOify
+print("Output:\n"+i)
+end function
+mainMap.aircrack={}
+mainMap.aircrack.use="Usage: aircrack"
+mainMap.aircrack.desc="Automatically crack a wifi on relative system."
+mainMap.aircrack.minPar=0
+mainMap.aircrack.alias=[]
+mainMap.aircrack.run=function(x)
+hc=package.thisC
+cr=mainMenu.tempCr
+if cr isa string then return print(cr)
+cr=cr.lib
+if hc isa string then return print(hc.color(__errC))
+info="SEL DEVICE CHIPSET MONITOR"
+i=0
+devs=network_devices(hc).split(char(10)).where("contains","wlan")
+for each in devs
+i=i+1
+info=info+"\n["+i+"] "+each
+end for
+print(format_columns(info))
+i=user_input("Select a device: ").to_int
+if i isa string or (i-1)<0 then return print("Invalid selection!".color(__errC))
+dev=devs[(i-1)].split(" ")[0]
+output=cr.airmon("start",dev)
+if not output then return print("Device not found!".color(__errC))
+if output isa string then return print(output.color(__errC))
+wlans=wifi_networks(hc,dev)
+if not wlans then return print("No wifi networks found!".color(__errC))
+info="SEL BSSID PWR ESSID"
+i=0
+for wlan in wlans
+i=i+1
+info=info+"\n["+i+"] "+wlan
+end for
+print(format_columns(info))
+i=user_input("Select a wifi: ").to_int
+if i isa string or (i-1)<0 then return print("Invalid selection!".color(__errC))
+wifi=wlans[(i-1)].split(" ")
+acks=ceil(300000/(wifi[1][:-1].to_int+15))+1
+print("<color=green>Waiting for "+acks+" acks...</color>")
+res=cr.aireplay(wifi[0],wifi[2],acks)
+if res isa string then return print(res.color(__errC))
+output=cr.airmon("stop",dev)
+if not output then return print("Device not found!".color(__errC))
+file=package.Depth[0].shell.host_computer.File(current_path+"/file.cap")
+key=cr.aircrack(file.path)
+if not key then return print("Couldn't crack key!".color(__errC))
+file.delete
+print("Key found! Key: "+key)
+status=connect_wifi(hc,dev,wifi[0],wifi[2],key)
+if status isa string then return print(status.color(__errC))
+print("Wi-Fi connected!".color(__retC))
+end function
+mainMap.aptget={}
+mainMap.aptget.use="Usage: aptget <b>(-u/-i/-f/-l/-a/-r) [options]</b>"
+mainMap.aptget.desc="Full aptclient functionality for relative system, can take absolute path for install. Requires root. Update/Install/Find/List/Addrepo/Removerepo"
+mainMap.aptget.minPar=1
+mainMap.aptget.alias=[]
+mainMap.aptget.run=function(x)
+if active_user!="root" then return print("Can't use apt system as non root user!".color(__errC))
+aptclient=package.Depth[package.Session].Ac.lib
+if x[0]=="-u" then
+print("Updating package lists...")
+output=aptclient.update
+if output then return print(output)
+print("Update complete!".color(__retC))
+else if x[0]=="-i" then
+if not x.hasIndex(1) then return print("No file specified!".color(__errC))
+print("Reading package lists...")
+print("Downloading "+x[1])
+output=""
+if x.hasIndex(2) then
+output=aptclient.install(x[1],x[2])
+else
+output=aptclient.install(x[1])
+end if
+if output==true then return print((x[1]+" installed").color(__retC))
+print(output)
+else if x[0]=="-f" then
+if not x.hasIndex(1) then return print("No file specified!".color(__errC))
+print(aptclient.search(x[1]))
+else if x[0]=="-l" then
+if not x.hasIndex(1) then return print("No repo given!".color(__errC))
+print(aptclient.show(x[1]))
+else if x[0]=="-a" then
+if not x.hasIndex(1) then return print("No address given!".color(__errC))
+port=1542
+if x.hasIndex(2) then port=x[2]
+output=aptclient.add_repo(x[1],port)
+if output then return print(output.color(__errC))
+print("Repository "+x[1]+" added succesfully.\nLaunch apt with the -u option to apply the changes")
+else if x[0]=="-r" then
+if not x.hasIndex(1) then return print("No address given!".color(__errC))
+output=aptclient.del_repo(x[1])
+if output then return print(output.color(__errC))
+print("Repository "+x[1]+" removed succesfully.\nLaunch apt with the -u option to apply the changes")
+end if
+end function
+mainMap.update={}
+mainMap.update.use="Usage: update"
+mainMap.update.desc="Update metaxploit. <b>MUST BE RUN IN SESSION 0!</>"
+mainMap.update.minPar=0
+mainMap.update.alias=[]
+mainMap.update.run=function(x)
+if not package.Session==0 then return print("Must be run in session 0!".color(__errC))
+mainMenu.updateLibs
+mainMenu.incMx
+end function
+mainMap.chsafe={}
+mainMap.chsafe.use="Usage: chsafe <b>[-r/-t/-rt]</b>"
+mainMap.chsafe.desc="Lock or unlock permissions system wide, can target shell or comp. <b>REQUIRES ROOT!</b>"
+mainMap.chsafe.minPar=0
+mainMap.chsafe.alias=[]
+mainMap.chsafe.run=function(x)
+c=package.thisC
+if x and x.hasIndex(0) and (x[0]=="-t" or x[0]=="-rt") then
+c=mainMenu.targetC("chsafe")
+if c isa string then return print(c)
+end if
+groups=["u","g","o"]
+mod="-"
+file=File(c,"/")
+if x and x.hasIndex(0) and (x[0]=="-r" or x[0]=="-rt") then mod="+"
+for group in groups
+perms="wrx"
+if mod=="+" and (group=="g" or group=="o") then perms="rx"
+file.chmod(group+mod+perms,1)
+end for
+if mod=="-" then
+file.set_owner("root",1)
+file.set_group("root",1)
+bins=["/bin/sudo",program_path]
+for bin in bins
+b=File(c,bin)
+if not b then continue
+b.chmod("u+x")
+b.chmod("g+x")
+b.chmod("o+x")
+end for
+apps=["Terminal","Mail","Chat","Settings"]
+for app in apps
+a=File(c,"/usr/bin/"+app+".exe")
+if not a then continue
+a.chmod("u+x")
+a.chmod("g+x")
+a.chmod("o+x")
+end for
+else
+guest=File(c,"/home/guest")
+if guest!=null then
+guest.set_owner("guest",1)
+guest.set_group("guest",1)
+end if
+end if
+print("Operation complete!".color(__retC))
+end function
+mainMap.ifconfig={}
+mainMap.ifconfig.use="Usage: ifconfig <b>[-b/-t/-bt]</b>"
+mainMap.ifconfig.desc="Show or change eth system, can target shell or comp, can't be run by guest."
+mainMap.ifconfig.minPar=0
+mainMap.ifconfig.alias=[]
+mainMap.ifconfig.run=function(x)
+c=package.thisC
+if x and x.hasIndex(0) and (x[0]=="-t" or x[0]=="-bt") then
+c=mainMenu.targetC("ifconfig")
+if c isa string then return print(c)
+end if
+if x and x.hasIndex(0) and (x[0]=="-b" or x[0]=="-bt") then
+info="SEL DEVICE CHIPSET MONITOR"
+devices=network_devices(c).split(char(10)).where("contains","eth")
+i=1
+for each in devices
+info=info+"\n["+i+"]"+each
+i=i+1
+end for
+print(format_columns(info))
+i=user_input("Select ethernet card: ",0,1).to_int
+if i isa string or (i-1)<0 then return print("Invalid selection!".color(__errC))
+dev=devices[i-1]
+add=user_input("Set local IP: ")
+if not is_valid_ip(add) or not is_lan_ip(add) then return print("That was not a valid lan IP".color(__errC))
+gate=user_input("Set gateway address: ")
+if not is_valid_ip(gate) or not is_lan_ip(add) then return print("That was not a valid lan IP".color(__errC))
+out=connect_ethernet(c,dev,add,gate)
+if out isa string then return print(out.color(__errC))
+print("Config set!".color(__retC))
+else
+rtr=get_router
+if is_network_active(c) then
+if active_net_card(c)=="WIFI" then
+print("\nConnected to Wi-Fi:\nESSID: "+rtr.essid_name+"\nBSSID: "+rtr.bssid_name+"\nPublic IP: "+c.public_ip+"\nLocal IP: "+c.local_ip)
+else
+print("\nConnected to ethernet:\nPublic IP: "+c.public_ip+"\nLocal IP: "+c.local_ip+"\nGateway: "+network_gateway(c))
+end if
+else
+print("\n"+"Not connected to any network.".color(__errC))
+end if
+end if
+end function
+mainMap.iwconfig={}
+mainMap.iwconfig.use="Usage: iwconfig <b>[-t]</b>"
+mainMap.iwconfig.desc="Change the wlan system, can target shell or comp, can't be run by guest."
+mainMap.iwconfig.minPar=0
+mainMap.iwconfig.alias=[]
+mainMap.iwconfig.run=function(x)
+c=package.thisC
+if x and x.hasIndex(0) and x[0]=="-t" then
+c=mainMenu.targetC("iwconfig")
+if c isa string then return print(c)
+end if
+info="SEL DEVICE CHIPSET MONITOR"
+devices=network_devices(c).split(char(10)).where("contains","wlan")
+i=1
+for each in devices
+info=info+"\n["+i+"] "+each
+i=i+1
+end for
+print(format_columns(info))
+i=user_input("Enter wifi card: ",0,1).to_int
+if i isa string or (i-1)<0 then return print("Invalid selection!".color(__errC))
+dev=devs[i-1].split(" ")[0]
+wlans=wifi_networks(c,dev)
+if wlans==null then return print("No networks found or there was an error".color(__errC))
+inf="SEL BSSID PWR ESSID"
+i=1
+for wlan in wlans
+inf=inf+"\n["+i+"] "+wlan
+i=i+1
+end for
+print(format_columns(inf))
+i=user_input("Select a wifi: ",0,1).to_int
+if i isa string or (i-1)<0 then return print("Invalid selection!".color(__errC))
+s=(i-1)
+pass=user_input("Enter wifi password: ",1)
+out=connect_wifi(c,dev,wlans[s].split(" ")[0],wlans[s].split(" ")[2],pass)
+if out isa string then return print(out.color(__errC))
+print("WiFi Connected!".color(__retC))
+end function
+mainMap.monitor={}
+mainMap.monitor.use="Usage: monitor <b>[bssid] [essid] [password]</b>"
+mainMap.monitor.desc="Monitor libraries on a system for ingress, can't be run by guest, optionally can specify wifi to use for egress."
+mainMap.monitor.minPar=0
+mainMap.monitor.alias=[]
+mainMap.monitor.run=function(x)
+mainMenu.cl
+c=package.Depth[0].shell.host_computer
+bss=""
+ess=""
+pass=""
+if not (x and x.hasIndex(0) and x.hasIndex(1) and x.hasIndex(2)) then
+info="SEL DEVICE CHIPSET MONITOR"
+devices=network_devices(c).split(char(10)).where("contains","wlan")
+i=1
+for each in devices
+info=info+"\n["+i+"] "+each
+i=i+1
+end for
+print(format_columns(info))
+i=user_input("Enter wifi card: ",0,1).to_int
+if i isa string or (i-1)<0 then return print("Invalid selection!".color(__errC))
+dev=devices[i-1].split(" ")[0]
+wlans=wifi_networks(c,dev)
+if wlans==null then return print("No networks found or there was an error".color(__errC))
+inf="SEL BSSID PWR ESSID"
+i=1
+for wlan in wlans
+inf=inf+"\n["+i+"] "+wlan
+i=i+1
+end for
+print(format_columns(inf))
+i=user_input("Select a wifi: ",0,1).to_int
+if i isa string or (i-1)<0 then return print("Invalid selection!".color(__errC))
+s=(i-1)
+bss=wlans[s].split(" ")[0]
+ess=wlans[s].split(" ")[2]
+pass=user_input("Enter wifi password: ",1)
+else
+dev="wlan0"
+bss=x[0]
+ess=x[1]
+pass=x[2]
+end if
+rc=package.thisC
+rc.touch("/lib","rep")
+if (rc.File("/lib/libhttp.so")==null) then
+out=rc.File("/lib/rep").move("/lib","libhttp.so")
+if out isa string then return print(out.color(__errC))
+rc.File("/lib/libhttp.so").rename("rep")
+end if
+out=rc.File("/lib/rep").move("/lib","kernel_router.so")
+if out isa string then return print(out.color(__errC))
+kr=rc.File("/lib/kernel_router.so")
+print("Listening for ingress...")
+while not kr.is_binary
+end while
+out=c.connect_wifi(dev,bss,ess,pass)
+if out isa string then return print(out)
+print("Ingress detected!".color(__errC))
+print("See ya later stinky!".color("purple"))
+end function
+mainMap.clearlog={}
+mainMap.clearlog.use="Usage: clearlog <b>[-t]</b>"
+mainMap.clearlog.desc="Clear the relative system or target system log, if a sig.src is loaded at launch it will be used. If the system does not have /etc/fstab you can not clearlogs with a file object!"
+mainMap.clearlog.minPar=0
+mainMap.clearlog.alias=[]
+mainMap.clearlog.run=function(x)
+if x[0]=="-t" and package.Depth[package.Session].target.obj=="" then return print("Need a full target to clear target logs!".color(__errC))
+mainMenu.cl(x[0])
+end function
+mainMap.fxplore={}
+mainMap.fxplore.use="Usage: fxplore <b>[-t]</b>"
+mainMap.fxplore.desc="Launch File Xplorer, can target shell, comp or file."
+mainMap.fxplore.minPar=0
+mainMap.fxplore.alias=[]
+mainMap.fxplore.run=function(x)
+obj=package.Depth[package.Session].shell
+if x[0]=="-t" then
+tgt=package.Depth[package.Session].target
+if tgt.obj=="" then return print("You need to select a full target first!".color(__errC))
+obj=package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
+end if
+mainMenu.fx=FXploreMenu.init(obj)
+mainMenu.fx.run
+mainMenu.fx=null
+end function
+mainMap.ps={}
+mainMap.ps.use="Usage: ps <b>[-t]</b>"
+mainMap.ps.desc="Show all processes on current system, can target shell or comp."
+mainMap.ps.minPar=0
+mainMap.ps.alias=[]
+mainMap.ps.run=function(x)
+c=package.thisC
+if x and x.hasIndex(0) and x[0]=="-t" then
+c=mainMenu.targetC("ps")
+if c isa string then return print(c)
+end if
+procs=show_procs(c)
+info="No processes running!"
+if procs.split(char(10)).len!=1 then info=format_columns(procs)
+print(info)
+end function
+mainMap.kill={}
+mainMap.kill.use="Usage: kill <b>(pid/-a) [-t]</b>"
+mainMap.kill.desc="Kill process by PID or all, can target shell or comp, requires process permission."
+mainMap.kill.minPar=1
+mainMap.kill.alias=[]
+mainMap.kill.run=function(x)
+kill=function(c,pid)
+if not typeof(pid.to_int)=="number" then return print("Thats not a process number!".color(__errC))
+output=close_program(c,pid.to_int)
+if output isa string then return print(output.color(__errC))
+return print("Closed process".color(__retC))
+end function
+pid=x[0]
+c=package.thisC
+if x.hasIndex(1) and x[1]=="-t" then
+c=mainMenu.targetC("kill")
+if c isa string then return print(c)
+end if
+if pid=="-a" then
+procs=show_procs(c).split(char(10))[1:]
+if procs.len<1 then return print("No procs found!".color(__errC))
+for proc in procs.wherenot("contains","Xorg").wherenot("contains","kernel_task").wherenot("contains","Chat").wherenot("contains",package.InstanceId)
+kill(c,proc.split(" ")[1])
+end for
+else
+kill(c,pid)
+end if
+end function
+mainMap.passwd={}
+mainMap.passwd.use="Usage: passwd <b>(user) [-t]</b>"
+mainMap.passwd.desc="Change password for user, can target shell or comp, requires root."
+mainMap.passwd.minPar=1
+mainMap.passwd.alias=[]
+mainMap.passwd.run=function(x)
+c=package.thisC
+if x and x.hasIndex(1) and x[1]=="-t" then
+c=mainMenu.targetC("passwd")
+if c isa string then return print(c)
+end if
+pass=user_input("Changing password for user "+x[0]+"\nNew password: ",1).trim
+if not pass.isAlphaNum or pass.len>15 then return print("Password must be 15 characters or less and be alphanumeric!".color(__errC))
+output=change_password(c,x[0],pass)
+if output isa string then return print(output.color(__errC))
+print("Password set!".color(__retC))
+end function
+mainMap.sudo={}
+mainMap.sudo.use="Usage: sudo <b>(user/-s)</b>"
+mainMap.sudo.desc="Log in to a user on relative system."
+mainMap.sudo.minPar=1
+mainMap.sudo.alias=[]
+mainMap.sudo.run=function(x)
+user=x[0]
+if x[0]=="-s" then user="root"
+shell=get_shell(user,user_input("Password: ",1))
+if not shell then return print("Something went wrong...".color(__errC))
+hc=package.thisC
+mainMenu.fakeLib(shell,hc,"SUDO")
+print("Sudo successful!".color(__retC))
+end function
+mainMap.connect={}
+mainMap.connect.use="Usage: connect <b>(ssh/ftp) (<user@web/ip>/-s) [port]/[-t]</b>"
+mainMap.connect.desc="Connect to service adding shell to netmap or install an ssh server on the current system."
+mainMap.connect.minPar=1
+mainMap.connect.alias=[]
+mainMap.connect.run=function(x)
+if x[0]!="ssh" and x[0]!="ftp" then return print("Invalid connection type!")
+if x[0]=="ssh" and x[1]=="-s" then
+out=package.Depth[0].shell.scp(package.libssh.path,"/lib/",package.Depth[package.Session].shell)
+if out isa string then return print(out.color(__errC))
+sshd=include_lib("/lib/libssh.so")
+if not sshd then return print("I couldn't find the lib!".color(__errC))
+out=sshd.install_service
+if out isa string then print(out.color(__errC))
+return print(("SSH server installed on "+package.thisC.public_ip+"-"+package.thisC.local_ip).color(__retC))
+end if
+if not x[1].matches("@") then return print("Invalid data!")
+info=x[1].split("@")
+user=info[0]
+address=info[1]
+if not is_valid_ip(address) then address=nslookup(address)
+if not is_valid_ip(address) then return print("That isn't a valid IP, TF are you doing?".color(__errC))
+pass=user_input("Enter password: ",1)
+port=22
+if x[0]=="ftp" then port=21
+if x.hasIndex(2) and typeof(x[2].to_int)=="number" then port=x[2].to_int
+s=package.Depth[package.Session].shell
+if (x.hasIndex(2) and x[2]=="-t") or (x.hasIndex(3) and x[3]=="-t") then
+tgt=package.Depth[package.Session].target
+s=package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
+if not s isa __shell and typeof(s)!="ftpShell" then return print("Target must be a shell!".color(__errC))
+end if
+shell=connect_service(s,address,port,user,pass,x[0])
+if shell isa string then return print(shell.color(__errC))
+if not shell then return print("Connection failed".color(__errC))
+hc=host_computer(shell)
+access=mainMenu.fakeLib(shell,hc,x[0].upper)
+print(("Saved "+access+" "+x[0].upper+"!").color(__retC))
+end function
+mainMap.sniff={}
+mainMap.sniff.use="Usage: sniff <b>[-e]</b>"
+mainMap.sniff.desc="Sniff the current system for outbound or inbound connections. Option to download enc src."
+mainMap.sniff.minPar=0
+mainMap.sniff.alias=[]
+mainMap.sniff.run=function(x)
+mx=package.Depth[package.Session].Mx.lib
+enc=0
+if x and x.hasIndex(0) and x[0]=="-e" then enc=1
+out=mx.sniffer(enc)
+if out isa string then return print(("It smell like bitch in here...".color(__errC))+"\n"+out)
+return print("I got nothin...".color(__retC))
+end function
+mainMap.pwget={}
+mainMap.pwget.use="Usage: pwget <b>[-t]</b>"
+mainMap.pwget.desc="Get password credentials as guest regardless of perms. Can be useds with target but requires a shell."
+mainMap.pwget.minPar=0
+mainMap.pwget.alias=[]
+mainMap.pwget.run=function(x)
+shell=package.Depth[package.Session].shell
+if x and x[0]=="-t" then
+tgt=package.Depth[package.Session].target
+if tgt.obj=="" then return print("You need to select a target shell".color(__errC))
+shell=package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
+if not shell isa __shell and typeof(shell)!="ftpShell" then return print("Target must be a shell!".color(__errC))
+end if
+c=host_computer(shell)
+getD=mainMenu.getDrop(File(host_computer(shell),"/"))
+if not getD then return print("Couldn't find a place to drop!".color(__errC))
+loc=getD.path
+n=0
+res=touch(c,loc,n+".dat")
+if res isa string then
+while res isa string
+n=n+1
+res=touch(c,loc,n+".dat")
+end while
+end if
+f=File(c,loc+"/"+n+".dat")
+s="get_custom_object.ret=""import"+"_code(""/etc/passwd"")"""
+res=set_content(f,s)
+if res isa string then return print(("Set Content: "+res).color(__errC))
+res=build(shell,loc+"/"+n+".dat",loc)
+if res!="" then return print(("Build: "+res).color(__errC))
+launch(shell,loc+"/"+n)
+ret="File empty! Note: Routers are always empty.".color(__errC)
+if package.hasIndex("ret") and not isNullOrEmpty(package.ret) then ret=package.ret
+l=[]
+for line in ret.split(char(10))
+l.push(line.color(__retC))
+end for
+ret=l.join(char(10))
+print(ret)
+end function
+mainMap.brute={}
+mainMap.brute.use="Usage: brute"
+mainMap.brute.desc="Launch Celestial Tools"+char(169)+" Brute if it is installed."
+mainMap.brute.minPar=0
+mainMap.brute.alias=[]
+mainMap.brute.run=function(x)
+brute=package.Depth[0].shell.host_computer.File(__CelCoPath+"/brute")
+if not brute then return print("Brute not installed!".color(__errC))
+package.Depth[0].shell.launch("/usr/bin/Terminal.exe",brute.path+"/brute")
+end function
+mainMap.tnet={}
+mainMap.tnet.use="Usage: tnet <b>(-s/-l/-i/-v) [plate] [password]</b>"
+mainMap.tnet.desc="Acts on a traffic net (Setup/Link/Info/Vehicle), plate and password required for Vehicle!"
+mainMap.tnet.minPar=1
+mainMap.tnet.alias=[]
+mainMap.tnet.run=function(x)
+session=package.Depth[package.Session]
+if x[0]=="-s" then
+hc=package.thisC
+if not package.Netmap.hasIndex(hc.public_ip) then
+net=new Network
+net.devices={}
+package.Netmap[hc.public_ip]=net
+end if
+if not package.Netmap[hc.public_ip].devices.hasIndex(hc.local_ip) then
+dev=new Device
+dev.type=mainMenu.getTypeOf(hc.local_ip)
+dev.ports={}
+dev.libs={}
+package.Netmap[hc.public_ip].devices[hc.local_ip]=dev
+end if
+dev=package.Netmap[hc.public_ip].devices[hc.local_ip]
+tnet=include_lib("/lib/libtrafficnet.so")
+if not tnet then
+out=package.Depth[0].shell.scp(package.libtraffic.path,__AppPath,session.shell)
+if out isa string then return print(out.color(__errC))
+tnet=include_lib(__AppPath+"/libtrafficnet.so")
+if not tnet then return print("I couldn't find the lib!".color(__errC))
+end if
+dev.tnet=tnet
+print("Traffic net is saved!".color(__retC))
+return 
+end if
+tgt=session.target
+if tgt.pub=="" or tgt.loc=="" then return print("Select a target traffic net device!".color(__errC))
+tnet=package.Netmap[tgt.pub].devices[tgt.loc].tnet
+if not tnet then return print("There is no traffic net loaded on this system!".color(__errC))
+if x[0]=="-l" then
+out=tnet.camera_link_system
+if out isa string then return print(out.color(__errC))
+return print("Camera system linked successfully!".color(__retC))
+else if x[0]=="-v" then
+if not x.hasIndex(1) or not x.hasIndex(2) then return print("No plate or password indicated!".color(__errC))
+out=tnet.locate_vehicle(x[1],x[2])
+if out isa string then return print(out.color(__errC))
+return print("Plate located!".color(__retC))
+else if x[0]=="-i" then
+out=tnet.get_credentials_info
+return print(out)
+end if
+end function
+mainMap.pivot={}
+mainMap.pivot.use="Usage: pivot"
+mainMap.pivot.desc="Pivot crypto library to relative system."
+mainMap.pivot.minPar=0
+mainMap.pivot.alias=[]
+mainMap.pivot.run=function(x)
+mainMenu.incCr
+if package.Session!=0 then print("Crypto.so pivoted! To return to using your home crypto exit to session 0 and use pivot again.")
+end function
+mainMap.decipher={}
+mainMap.decipher.use="Usage: decipher <b>(md5 hash)</b>"
+mainMap.decipher.desc="Deciphers a single md5 hash with the pivoted crypto library."
+mainMap.decipher.minPar=1
+mainMap.decipher.alias=[]
+mainMap.decipher.run=function(x)
+if x[0].len<32 or not x[0].isAlphaNum then return print("Not an md5!".color(__errC))
+dec=decipher(package.Cr.lib,x[0])
+if dec==null then return print("Couldn't decipher hash!".color(__errC))
+print(dec.color(__retC))
+end function
+mainMap.sel={}
+mainMap.sel.use="Usage: sel <b>(-n/-d/-c/-l/-o) [selection]</b>"
+mainMap.sel.desc="Select target Network/Device/Current/Library/Object. (Selection is optional for preloading on known targs)"
+mainMap.sel.minPar=1
+mainMap.sel.alias=[]
+mainMap.sel.run=function(x)
+tgt=package.Depth[package.Session].target
+cat=null
+next=""
+if x[0]=="-n" then
+if package.Netmap.len==0 then return print("I don't know any networks yet!".color(__errC))
+cat=package.Netmap
+next="devices"
+tgt.loc=""
+tgt.lib=""
+tgt.obj=""
+else if x[0]=="-d" then
+if tgt.pub=="" then return print("You haven't selected a target network yet!".color(__errC))
+if not package.Netmap.hasIndex(tgt.pub) or package.Netmap[tgt.pub].devices.len==0 then return print("I don't know any devices in that network!".color(__errC))
+cat=package.Netmap[tgt.pub].devices
+next="libs"
+tgt.lib=""
+tgt.obj=""
+else if x[0]=="-l" then
+if tgt.pub=="" then return print("You haven't selected a target network yet!".color(__errC))
+if tgt.loc=="" then return print("You haven't selected a target device yet!".color(__errC))
+if not package.Netmap[tgt.pub].devices.hasIndex(tgt.loc) or package.Netmap[tgt.pub].devices[tgt.loc].libs.len==0 then return print("I don't know any libs on that device!".color(__errC))
+cat=package.Netmap[tgt.pub].devices[tgt.loc].libs
+next="objects"
+tgt.obj=""
+else if x[0]=="-o" then
+if tgt.pub=="" then return print("You haven't selected a target network yet!".color(__errC))
+if tgt.loc=="" then return print("You haven't selected a target device yet!".color(__errC))
+if tgt.lib=="" then return print("You haven't selected a target lib yet!".color(__errC))
+if not package.Netmap[tgt.pub].devices[tgt.loc].libs.hasIndex(tgt.lib) or package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects.len==0 then return print("I don't have any objs from that lib!".color(__errC))
+cat=package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects
+else if x[0]=="-c" then
+hc=package.thisC
+if not package.Netmap.hasIndex(hc.public_ip) then
+net=new Network
+net.devices={}
+package.Netmap[hc.public_ip]=net
+end if
+if not package.Netmap[hc.public_ip].devices.hasIndex(hc.local_ip) then
+dev=new Device
+dev.type=mainMenu.getTypeOf(hc.local_ip)
+dev.ports={}
+dev.libs={}
+package.Netmap[hc.public_ip].devices[hc.local_ip]=dev
+end if
+tgt.pub=hc.public_ip
+tgt.loc=hc.local_ip
+tgt.lib=""
+tgt.obj=""
+return 
+else
+return print("Invalid option!".color(__errC))
+end if
+i=0
+l=[]
+info=""
+if x[0]=="-n" then info="SEL NETWORK INFO"
+if x[0]=="-d" then info="SEL DEVICE TYPE INFO"
+if x[0]=="-l" then info="SEL LIBRARY VER INFO"
+if x[0]=="-o" then info="SEL ACCESS TYPE UID"
+for each in cat
+i=i+1
+l.push(each.key)
+data=""
+if x[0]=="-d" and each.value.type!=null then data=" "+each.value.type.values[0].upper
+if x[0]=="-l" and each.value.ver!="" then data=" "+each.value.ver
+if x[0]!="-o" then
+info=info+"\n["+i+"] "+each.key+data+" Contents: "+each.value[next].len
+else
+obj=each.key.split(" ")
+info=info+"\n["+i+"] "+each.value.access+" "+obj[0]+" "+obj[1]
+end if
+end for
+info=format_columns(info)
+if x[0]=="-o" then info=info.replace("shell","shell".color(__errC)).replace("computer","computer".color("yellow")).replace("file","file".color(__retC))
+print(info)
+s=null
+if x.hasIndex(1) and typeof(x[1].to_int)=="number" then s=x[1] else s=user_input("Selection: ")
+if s=="cancel" or s=="" or typeof(s.to_int)!="number" or not l.hasIndex(s.to_int-1) then return print("Invalid selection!".color(__errC))
+res=l[s.to_int-1]
+if x[0]=="-n" then tgt.pub=res
+if x[0]=="-d" then tgt.loc=res
+if x[0]=="-l" then tgt.lib=res
+if x[0]=="-o" then tgt.obj=res
+end function
+mainMap.settype={}
+mainMap.settype.use="Usage: settype <b>(router/switch/device)</b>"
+mainMap.settype.desc="Sets the type of a target device. Only for emergency use when device type isn't set correctly."
+mainMap.settype.minPar=1
+mainMap.settype.alias=[]
+mainMap.settype.run=function(x)
+if x[0]!="router" and x[0]!="device" and x[0]!="switch" then return print("Invalid type!".color(__errC))
+tgt=package.Depth[package.Session].target
+if tgt.loc=="" then return print("You must select a device first!".color(__errC))
+dev=package.Netmap[tgt.pub].devices[tgt.loc]
+dev.type=x[0]
+print(("Type set to "+x[0]).color(__retC))
+end function
+mainMap.netmap={}
+mainMap.netmap.use="Usage: netmap"
+mainMap.netmap.desc="Show the current network map in memory."
+mainMap.netmap.minPar=0
+mainMap.netmap.alias=[]
+mainMap.netmap.run=function(x)
+t="<size=80%>"+char(9)+"</size>"
+pipe="<size=120%><mspace=0.1> <mark=#ffffff>"+char(1564)+"</mark></size><mspace=-0.1>"+char(1564)+"</mspace></mspace> "
+pipe_c="<size=120%><mspace=0.1> <mark=#ffffff>"+char(1564)+"</mark></size><#fff><s></mspace>  </s></color>"
+pipe_e="<size=70%><mspace=0.1> <voffset=8><mark=#ffffff>"+char(1564)*2+"</mark></size><voffset=0><#fff><s></mspace>  </s></color>"
+print("Printing network map from memory:")
+for net in package.Netmap
+print(net.key)
+devs=net.value.devices.len
+for dev in net.value.devices
+dlead=pipe_c
+if devs==1 then dlead=pipe_e
+rss=""
+if dev.value.rss then rss=" - "+("Rshell".color("#DD00FF"))
+tnet=""
+if dev.value.tnet then tnet=" - "+("Traffic".color("#87ffcd"))
+print(dlead+dev.key+rss+tnet)
+libs=dev.value.libs.len
+for lib in dev.value.libs
+dlayer=t
+if devs!=1 then dlayer=pipe
+llead=t+pipe_c
+if libs==1 then llead=t+pipe_e
+out=dlayer+llead+lib.key
+if lib.value.pobj then out=out.color("orange")
+print(out)
+objs=lib.value.objects.len
+for obj in lib.value.objects
+llayer=t
+if libs!=1 then llayer=t+pipe
+olead=t+pipe_c
+if objs==1 then olead=t+pipe_e
+print(dlayer+llayer+olead+obj.value.access+" "+obj.key)
+objs=objs-1
+end for
+libs=libs-1
+end for
+devs=devs-1
+end for
+end for
+end function
+mainMap.rlib={}
+mainMap.rlib.use="Usage: rlib <b>[selection]</b>"
+mainMap.rlib.desc="Grab a remote library. (Selection is optional for preloading on known ports)"
+mainMap.rlib.minPar=0
+mainMap.rlib.alias=[]
+mainMap.rlib.run=function(x)
+tgt=package.Depth[package.Session].target
+if tgt.pub=="" or tgt.loc=="" then return print("No net device selected, select one first!".color(__errC))
+dev=package.Netmap[tgt.pub].devices[tgt.loc]
+address=tgt.loc
+portN=0
+if get_router.public_ip!=tgt.pub then address=tgt.pub
+if (dev.type!="router" or tgt.pub==package.thisC.public_ip or package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport")) and dev.ports.len>0 then
+info="PORT LAN SERVICE VERSION"
+for port in dev.ports.values
+info=info+char(10)+port.port_number+" "+port.get_lan_ip+" "+get_router(tgt.pub).port_info(port)
+end for
+print(format_columns(info))
+portN=null
+if x and x.hasIndex(0) and typeof(x[0].to_int)=="number" then portN=x[0].to_int else portN=user_input("Select a port: ").to_int
+if portN isa string then return print(("This isn't a port: "+portN).color(__errC))
+if portN==0 and dev.type!="router" and dev.type!="switch" then return print("Invalid port for non router!".color(__errC))
+end if
+if dev.type=="device" and portN==0 and package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport") then
+portN=user_input("Override enabled, enter port to pull from: ").to_int
+else if dev.type=="device" and portN==0 then
+return print("No ports to grab from!".color(__errC))
+end if
+print("Scanning "+tgt.pub+"-"+tgt.loc+" at port "+portN+"...")
+net_session=package.Depth[package.Session].Mx.lib.net_use(address,portN)
+if not net_session and package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport") and user_input("Override enabled, would you like to repeat connection attempt? y/N: ").trim.lower=="y" then
+i=user_input("Enter repeat time: ")
+if not i.val isa number or i.val<0.01 or i.val>300 then return print("Invalid repeat time!".color(__errC))
+i=i.val
+while not net_session and package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport")
+net_session=package.Depth[package.Session].Mx.lib.net_use(address,portN)
+wait(i)
+end while
+end if
+if not net_session then return print("Couldn't establish net session".color(__errC))
+dev.netsession=net_session
+metaLib=net_session.dump_lib
+if dev.libs.hasIndex(metaLib.lib_name) then
+oldLib=package.Netmap[tgt.pub].devices[tgt.loc].libs[metaLib.lib_name]
+print("[old] "+oldLib.lib.lib_name+" v"+oldLib.ver)
+print("[new] "+metaLib.lib_name+" v"+metaLib.version)
+i=user_input("Overwrite "+metaLib.lib_name+"@"+tgt.pub+":"+tgt.loc+"? (y/N)\n")
+if i!="y" then return print(("Keeping "+oldLib.lib.lib_name+" v"+oldLib.ver+"!").color(__retC))
+end if
+lib=new Library
+lib.loc="remote"
+lib.lib=metaLib
+lib.ver=metaLib.version
+lib.objects={}
+dev.libs[metaLib.lib_name]=lib
+print(("Grabbed "+metaLib.lib_name+" v"+metaLib.version).color(__retC))
+end function
+mainMap.llib={}
+mainMap.llib.use="Usage: llib <b>[libname]</b>"
+mainMap.llib.desc="Grab all relative system libraries, option to selectively grab by name."
+mainMap.llib.minPar=0
+mainMap.llib.alias=[]
+mainMap.llib.run=function(x)
+locIp=package.thisC.local_ip
+pubIp=package.thisC.public_ip
+if not package.Netmap.hasIndex(pubIp) then
+net=new Network
+net.devices={}
+package.Netmap[pubIp]=net
+end if
+if not package.Netmap[pubIp].devices.hasIndex(locIp) then
+dev=new Device
+dev.type="device"
+dev.libs={}
+package.Netmap[pubIp].devices[locIp]=dev
+end if
+libFolder=package.thisC.File("/lib")
+out=[]
+for lib in libFolder.get_files
+metaLib=package.Depth[package.Session].Mx.lib.load(lib.path)
+if not metaLib then continue
+if x and x.hasIndex(0) and x[0]!=lib.name then continue
+fileName=lib.path.split("/")[-1]
+if package.Netmap[pubIp].devices[locIp].libs.hasIndex(fileName) then
+oldLib=package.Netmap[pubIp].devices[locIp].libs[fileName]
+print("[old] "+metaLib.lib_name+" v"+oldLib.ver)
+print("[new] "+metaLib.lib_name+" v"+metaLib.version)
+i=user_input("Overwrite "+metaLib.lib_name+"@"+pubIp+":"+locIp+"? (y/N)\n")
+if i!="y" then
+print(("Keeping "+metaLib.lib_name+" v"+oldLib.ver+"!").color(__retC))
+continue
+end if
+end if
+lib=new Library
+lib.loc="local"
+lib.lib=metaLib
+lib.ver=metaLib.version
+lib.objects={}
+package.Netmap[pubIp].devices[locIp].libs[fileName]=lib
+print(("Grabbed File: "+fileName+" Lib: "+metaLib.lib_name+" v"+metaLib.version).color(__retC))
+end for
+end function
+mainMap.map={}
+mainMap.map.use="Usage: map <b>[selection]</b>"
+mainMap.map.desc="Show vector map of target library. (Selection is optional for preloading on known vectors)"
+mainMap.map.minPar=0
+mainMap.map.alias=[]
+mainMap.map.run=function(x)
+tgt=package.Depth[package.Session].target
+if tgt.lib=="" then return print("You need a library first!".color(__errC))
+d=package.Netmap[tgt.pub].devices[tgt.loc]
+lib=d.libs[tgt.lib]
+metaLib=lib.lib
+if not metaLib then return print(("This isn't a scannable library!").color(__errC))
+vlist=Database.vectorRead(metaLib)
+if vlist then
+i=0
+for each in vlist
+i=i+1
+setcolor="#848484"
+sp=each.split(":")
+if sp[3]=="S" then setcolor=__errC
+if sp[3]=="C" then setcolor="yellow"
+if sp[3]=="F" then setcolor=__retC
+if sp[3]=="P" then setcolor="purple"
+if sp[3]=="R" then setcolor="orange"
+if sp[3]=="?" then setcolor="white"
+if d.netsession then
+ns=d.netsession
+if sp[5]=="R" and not ns.is_root_active_user then setcolor="#848484"
+if sp[5]=="N" and not ns.is_any_active_user then setcolor="#848484"
+if sp[6]!="-" and ns.get_num_users<sp[6].to_int then setcolor="#848484"
+if sp[7]!="-" and ns.get_num_portforward<sp[7].to_int then setcolor="#848484"
+if sp[8]!="-" and ns.get_num_conn_gateway<sp[8].to_int then setcolor="#848484"
+else
+if sp[5]!="-" or sp[6]!="-" or sp[7]!="-" or sp[8]!="-" then setcolor="#848484"
+end if
+print("["+i+"] "+each.color(setcolor))
+end for
+flag=false
+if x and x.hasIndex(0) and x[0].to_int<=vlist.len then flag=true
+if flag==true then
+i=x[0]
+else
+print("[map] Full remap")
+i=user_input("Select vector: ")
+end if
+if i!="map" then
+if not vlist.hasIndex(i.to_int-1) then return print("Invalid selection!".color(__errC))
+s=vlist[i.to_int-1]
+i="y"
+if s.split(":")[3]!="?" then
+i="n"
+if flag==false then i=user_input("Rescan vector? (y/N) ")
+end if
+if i=="y" then
+sp=s.split(":")
+res=metaLib.overflow(sp[1],sp[2])
+if res isa string then return print(("Non-payment error!"+res).color(__errC))
+if not res then
+if user_input("Can you fix this? (y/N)\n")=="y" then
+if user_input("Is this an input issue? (Password Change/Lan Bounce) (y/N)\n")=="y" then
+res=metaLib.overflow(sp[1],sp[2],user_input("Enter input to resolve above problem:\n"))
+if res isa string then return print(("Non-payment error!"+res).color(__errC))
+if not res then
+sp[3]="?"
+sp[4]="?"
+setColor="#848484"
+end if
+else
+sp[3]=user_input("Set type of return if known (R/P/S/C/F):\n").upper
+sp[4]=user_input("Set level of return if known (R/U/G):\n").upper
+setColor="#848484"
+end if
+else
+sp[3]="?"
+sp[4]="?"
+setColor="#848484"
+end if
+end if
+if res then
+type=""
+level=""
+if res isa __shell then
+sp[3]="S"
+type="shell"
+setColor=__errC
+else if res isa __computer then
+sp[3]="C"
+type="computer"
+setColor="yellow"
+else if res isa __file then
+sp[3]="F"
+type="file"
+setColor=__retC
+else if res isa number then
+if user_input("Is this a password change? (y/N) ")=="y" then
+sp[3]="P"
+type="password"
+setColor="purple"
+else
+sp[3]="R"
+type="firewall"
+setColor="orange"
+end if
+end if
+if type!="firewall" and type!="password" then
+result=new Object
+result.obj=res
+level=mainMenu.probe(res)
+if level=="guest" then
+sp[4]="G"
+else if level=="user" then
+if package.Netmap[tgt.pub].devices[tgt.loc].type=="router" and not res isa __computer then
+sp[4]="G"
+else
+sp[4]="U"
+end if
+else if level=="root" then
+sp[4]="R"
+else
+sp[4]="?"
+end if
+result.access=level
+s=sp[0]+sp[1]+sp[2]+sp[3]+sp[4]
+uid=md5(s)[:4]
+package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[type+" "+uid]=result
+else if type=="password" then
+sp[4]=user_input("Please input level of pass change: R/U\n").upper
+else
+sp[4]="-"
+end if
+end if
+out=""
+i=0
+for each in sp
+if i==0 then
+out=out+each
+else
+out=out+":"+each
+end if
+i=i+1
+end for
+Database.vectorWrite(metaLib,out)
+return 
+else
+sp=s.split(":")
+i=""
+if sp[3]=="C" and package.Netmap[tgt.pub].devices[tgt.loc].type=="router" then
+if package.thisC.public_ip==tgt.pub and package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport") and user_input("Override enabled!\nWould you like to scan for a user? (y/N): ")=="y" then
+i=user_input("Enter username: ")
+ul=mainMenu.userScan(sp[1],sp[2])
+if ul isa string then return print(ul)
+if ul.hasIndex(i) then
+print("\n"+("-"*60)+"\n")
+out=[]
+out.push(("User "+i+" found in "+ul[i].dev).color(__retC))
+if not isNullOrEmpty(ul[i].mail) then
+out.push(("  Email: "+ul[i].mail).color(__retC))
+out.push(("   Pass: "+decipher(package.Cr.lib,ul[i].pass)).color(__retC))
+else
+out.push("Error reading Mail.txt".color(__errC))
+end if
+print(out.join(char(10))+"\n")
+end if
+return 
+end if
+i=user_input("Enter lan IP: ")
+if not is_lan_ip(i) then return print("Invalid IP!".color(__errC))
+else if sp[3]=="P" then
+i=user_input("Enter new password: ",1).trim
+if not i.isAlphaNum or i.len>15 then return print("Password must be 15 characters or less and be alphanumeric!".color(__errC))
+end if
+res=metaLib.overflow(sp[1],sp[2],i)
+if res isa string then return print(("Non-payment error!"+res).color(__errC))
+if not res then
+print("Exploit failed!".color(__errC))
+if package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport") and user_input("Override enabled!\nRepeat? (y/N) ")=="y" then
+t=user_input("Wait time (sec): ").to_int
+if t isa string or t<1 then return 
+user_input("Close ExploitReport.exe to halt loop\n--Any Key to Start--\n",0,1)
+while not res and package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport")
+res=metaLib.overflow(sp[1],sp[2],i)
+wait(t)
+end while
+if res isa string then return print(("Non-payment error!"+res).color(__errC))
+else
+return 
+end if
+end if
+if sp[3]=="R" or sp[3]=="P" then return 
+result=new Object
+result.obj=res
+level=""
+if sp[4]=="R" then level="root"
+if sp[4]=="U" then level="user"
+if sp[4]=="G" then level="guest"
+result.access=level
+type=""
+if sp[3]=="S" then type="shell"
+if sp[3]=="C" then type="computer"
+if sp[3]=="F" then type="file"
+s=sp[0]+sp[1]+sp[2]+sp[3]+sp[4]
+uid=md5(s)[:4]
+package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[type+" "+uid]=result
+return 
+end if
+else if i=="cancel" or i=="" then
+return 
+end if
+end if
+outD=[]
+listMem=package.Depth[0].Mx.lib.scan(metaLib)
+if listMem.len==0 then return print("There are no exploi- How! SAVE THIS LIBRARY NOW!".color("blue"))
+cur=false
+if package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport") and user_input("Override active, do you want to skip curating? (y/N): ")=="y" then cur=true
+for mem in listMem
+scans=package.Depth[0].Mx.lib.scan_address(metaLib,mem).split("Unsafe check: ")
+for data in scans
+if scans.indexOf(data)==0 then continue
+setColor="#848484"
+out=[]
+m=data.matches("<b>\S*<\/b>\.")
+target=m.values.pull[3:m.len-6]
+ver=metaLib.version
+sub=ver.split("\.")[1]+"."+ver.split("\.")[2]
+out.push(sub)
+out.push(mem)
+out.push(target)
+print("Overflow: "+mem+" : "+target)
+res=metaLib.overflow(mem,target)
+if res isa string then return print(("Non-payment error!"+res).color(__errC))
+if not res and not cur then
+if user_input("Can you fix this? (y/N)\n")=="y" then
+if user_input("Is this an input issue? (Password Change/Lan Bounce) (y/N)\n")=="y" then
+res=metaLib.overflow(mem,target,user_input("Enter input to resolve above problem:\n"))
+if res isa string then return print(("Non-payment error!"+res).color(__errC))
+if not res then
+out.push("?")
+out.push("?")
+end if
+else
+t="?"
+l="?"
+t=user_input("Set type of return if known (R/P/S/C/F):\n").upper
+l=user_input("Set level of return if known (R/U/G):\n").upper
+out.push(t)
+out.push(l)
+end if
+else
+out.push("?")
+out.push("?")
+end if
+else if not res and cur then
+out.push("?")
+out.push("?")
+end if
+if res and not res isa string then
+type=""
+level=""
+if res isa __shell then
+out.push("S")
+type="shell"
+setColor=__errC
+else if res isa __computer then
+out.push("C")
+type="computer"
+setColor="yellow"
+else if res isa __file then
+out.push("F")
+type="file"
+setColor=__retC
+else if res isa number then
+if user_input("Is this a password change? (y/N) ")=="y" then
+out.push("P")
+type="password"
+setColor="purple"
+else
+out.push("R")
+type="firewall"
+setColor="orange"
+end if
+end if
+if type!="firewall" and type!="password" then
+result=new Object
+result.obj=res
+level=mainMenu.probe(res)
+if level=="guest" then
+out.push("G")
+else if level=="user" then
+if package.Netmap[tgt.pub].devices[tgt.loc].type=="router" and not res isa __computer then
+out.push("G")
+else
+out.push("U")
+end if
+else if level=="root" then
+out.push("R")
+else
+out.push("?")
+end if
+result.access=level
+s=""
+for e in out
+s=s+e
+end for
+uid=md5(s)[:4]
+package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[type+" "+uid]=result
+else if type=="password" then
+out.push(user_input("Please input level of pass change R/U:\n").upper)
+else
+out.push("-")
+end if
+end if
+active=data.matches("\w* active").values
+if active.len!=0 then
+if active[0].is_match("root active") then
+out.push("R")
+else if active[0].is_match("an active") then
+out.push("N")
+else if active[0].is_match("guest active") then
+out.push("G")
+end if
+else
+out.push("-")
+end if
+reg=data.matches("registered .*").values
+if reg.len!=0 then
+out.push(reg.pull.values[-2])
+else
+out.push("-")
+end if
+forward=data.matches("\d port").values
+if forward.len!=0 then
+out.push(forward.pull.values[0])
+else
+out.push("-")
+end if
+gate=data.matches("\d.*gateway\.").values
+if gate.len!=0 then
+out.push(gate.pull.values[0])
+else
+out.push("-")
+end if
+exist=data.matches("path .* exists").values
+if exist.len!=0 then
+out.push(slice(exist[0],5,-7))
+else
+out.push("-")
+end if
+sup=data.matches("\w*\.so.* >= .*\d+\.\d\.\d").values
+libList=["libssh","libftp","libhttp","libsql","libsmtp","libchat","libcam","librshell","librepository","blockchain","kernel_router","aptclient","metaxploit","crypto","kernel_module","init","net","libtrafficnet","libsmartappliance"]
+if sup.len!=0 then
+for item in sup
+for lib in libList
+if item.is_match(lib) then out.push(libList.indexOf(lib))
+end for
+splitver=item.matches("\d+\.\d\.\d").values.pull.split("\.")
+out.push(splitver[0])
+out.push(splitver[1]+"."+splitver[2])
+end for
+end if
+output=out.join(":")
+Database.vectorWrite(metaLib,output)
+outD.push(output.color(setColor))
+end for
+end for
+print(metaLib.lib_name+" v"+metaLib.version+" found!")
+for each in outD
+print(each)
+end for
+end function
+mainMap.overflow={}
+mainMap.overflow.use="Usage: overflow <b>(mem) (string) [extra]</b>"
+mainMap.overflow.desc="Manually fire an exploit at the target library."
+mainMap.overflow.minPar=2
+mainMap.overflow.alias=[]
+mainMap.overflow.run=function(x)
+mem=x[0]
+usec=x[1]
+tgt=package.Depth[package.Session].target
+if tgt.lib=="" then return print("You need a library first!".color(__errC))
+d=package.Netmap[tgt.pub].devices[tgt.loc]
+lib=d.libs[tgt.lib]
+metaLib=lib.lib
+if not metaLib then return print("This isn't a scannable library!".color(__errC))
+i=""
+if x.hasIndex(2) then i=x[2]
+res=metaLib.overflow(x[0],x[1],i)
+if res isa string then return print(("Non-payment error!"+res).color(__errC))
+if not res then
+print("Exploit failed!".color(__errC))
+if package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport") and user_input("Override enabled!\nRepeat? (y/N)")=="y" then
+t=user_input("Wait time (sec): ").to_int
+if t isa string or t<1 then return 
+user_input("Close ExploitReport.exe to halt loop\n--Any Key to Start--\n",0,1)
+while not res and package.Depth[0].shell.host_computer.show_procs.is_match("ExploitReport")
+res=metaLib.overflow(sp[1],sp[2],i)
+wait(t)
+end while
+if res isa string then return print(("Non-payment error!"+res).color(__errC))
+else
+return 
+end if
+end if
+result=new Object
+result.obj=res
+result.access=mainMenu.probe(res)
+type=typeof(res)
+s=x[0]+x[1]+type+result.access
+uid=md5(s)[:4]
+package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[type+" "+uid]=result
+ui=user_input("Store this exploit? (Note: Payload exploits are temporary and shouldn't be stored!) (y/N): ").trim
+if ui!="y" then return 
+out=[]
+sub=metaLib.version.split("\.")
+out.push(sub[1]+"."+sub[2])
+out.push(mem)
+out.push(usec)
+t="?"
+if type=="shell" then t="S"
+if type=="computer" then t="C"
+if type=="file" then t="F"
+if type=="number" then t=user_input("Is this a password reset or a firewall disable?(P/R): ").trim
+out.push(t)
+l="?"
+if result.access=="root" then l="R"
+if result.access=="user" then l="U"
+if result.access=="guest" then l="G"
+out.push(l)
+a="-"
+ui=user_input("Active user(R/U/G): ").trim
+if ui!="" then a=ui
+out.push(a)
+u="-"
+ui=user_input("Users registered(int): ").trim
+if ui!="" then u=ui
+out.push(u)
+p="-"
+ui=user_input("Ports forwarded(int): ").trim
+if ui!="" then p=ui
+out.push(p)
+g="-"
+ui=user_input("Gateway systems(int): ").trim
+if ui!="" then g=ui
+out.push(g)
+gr="-"
+ui=user_input("Groups on system(int): ").trim
+if ui!="" then gr=ui
+out.push(gr)
+ex="-"
+ui=user_input("Existing path(path): ").trim
+if ui!="" then ex=ui
+out.push(ex)
+req=""
+ui=user_input("Required library(libId:prime:sub): ").trim
+if ui!="" then
+req=ui.split(":")
+out.push(req[0])
+out.push(req[1])
+out.push(req[2])
+end if
+output=out.join(":")
+Database.vectorWrite(metaLib,output)
+end function
+mainMap.payload={}
+mainMap.payload.use="Usage: payload <b>(mem) [path]</b>"
+mainMap.payload.desc="Manually fire a payload against the target library."
+mainMap.payload.minPar=1
+mainMap.payload.alias=[]
+mainMap.payload.run=function(x)
+tgt=package.Depth[package.Session].target
+if tgt.lib=="" then return print("You need a library first!".color(__errC))
+net=package.Netmap[tgt.pub]
+dev=net.devices[tgt.loc]
+lib=dev.libs[tgt.lib]
+if not lib.lib then return print("This isn't a valid library!".color(__errC))
+if lib.lib.is_patched then
+return print(("Error: Library has been patched! Date library will be vulnerable: "+lib.lib.is_patched(true)).color(__errC))
+end if
+if (not net.debUser or not net.debPass) and user_input("Credentials found stored in net, would you like to enter new credentials? (y/N): ")=="y" then
+net.debUser=user_input("Username: ")
+net.debPass=user_input("Password:",1)
+end if
+debLib=lib.lib.debug_tools(net.debUser,net.debPass)
+if debLib isa string then return print(debLib)
+pobj=null
+if x.hasIndex(1) and x[1].isValidPath then pobj=debLib.payload(x[0],x[1]) else pobj=debLib.payload(x[0])
+if not pobj isa list then return print(pobj.color(__errC))
+lib.pobj=pobj[0]
+if pobj.hasIndex(2) then
+file=pobj[2]
+fileName=x[1].split("/")[-1]
+if not file then return print("Path not found!".color(__errC))
+if file isa MetaLib then
+if package.Netmap[tgt.pub].devices[tgt.loc].libs.hasIndex(fileName) then
+oldLib=package.Netmap[tgt.pub].devices[tgt.loc].libs[fileName]
+oldLib.lib=file
+oldLib.ver=file.version
+else
+lib=new Library
+lib.loc="local"
+lib.lib=file
+lib.ver=file.version
+lib.objects={}
+package.Netmap[tgt.pub].devices[tgt.loc].libs[fileName]=lib
+end if
+print(("File: "+fileName+" Lib: "+file.lib_name+" v"+file.version+" grabbed!").color(__retC))
+end if
+if not file.is_binary and file.has_permission("r") and user_input("File "+fileName+"found! Save as file? (y/N): ")=="y" then
+hc=package.Depth[0].shell.host_computer
+out=hc.touch("/root/Downloads/",fileName)
+if out isa string then return print(out.color(__errC))
+hfile=hc.File("/root/Downloads/"+fileName)
+if not hfile then return print("Couldn't find file!".color(__errC))
+out=hfile.set_content(file.get_content)
+if out isa string then return print(out.color(__errC))
+print(("File "+fileName+" downloaded!").color(__retC))
+else
+print("File "+fileName+" not found or no read permission!".color(__errC))
+end if
+else
+print("No file grabbed!".color(__errC))
+end if
+end function
+mainMap.cmd={}
+mainMap.cmd.use="Usage: cmd"
+mainMap.cmd.desc="Manual CMD line access to a payload pcomp"
+mainMap.cmd.minPar=0
+mainMap.cmd.alias=[]
+mainMap.cmd.run=function(x)
+tgt=package.Depth[package.Session].target
+if tgt.lib=="" then return print("You need a library first!".color(__errC))
+dev=package.Netmap[tgt.pub].devices[tgt.loc]
+lib=dev.libs[tgt.lib]
+metaLib=lib.lib
+if not metaLib then return print("This isn't a valid library!".color(__errC))
+o=lib.pobj
+while true
+ui=user_input("[Payload CMD] ").trim
+if ui=="-h" or ui=="" then
+info=""
+pcmd=o.values[0].indexes
+for key in pcmd
+if isNullOrEmpty(key) then continue
+print(key)
+end for
+print("exit")
+continue
+end if
+if ui=="x" or ui=="exit" then return 
+input=ui.split(" ")
+f=@o[input[0].lower]
+out=null
+if input.len==1 then out=f(o)
+if input.len==2 then out=f(o,input[1])
+if input.len==3 then out=f(o,input[1],input[2])
+if input.len==4 then out=f(o,input[1],input[2],input[3])
+if input.len==5 then out=f(o,input[1],input[2],input[3],input[4])
+if out then print(out)
+end while
+end function
+mainMap.rel={}
+mainMap.rel.use="Usage: rel <b>(-o)</b>"
+mainMap.rel.desc="Release a target. Option to override confirmation."
+mainMap.rel.minPar=0
+mainMap.rel.alias=[]
+mainMap.rel.run=function(x)
+tgt=package.Depth[package.Session].target
+if tgt.pub=="" then return print("You haven't selected a target network yet!".color(__errC))
+i="y"
+if x[0]!="-o" then
+i=""
+i=user_input("Are you sure you want to release target? (y/N)\n")
+end if
+if i!="y" then return 
+if tgt.obj!="" then
+package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects.remove(tgt.obj)
+tgt.obj=""
+else if tgt.lib!="" then
+package.Netmap[tgt.pub].devices[tgt.loc].libs.remove(tgt.lib)
+tgt.obj=""
+tgt.lib=""
+else if tgt.loc!="" then
+if package.thisC.public_ip==tgt.pub and package.thisC.local_ip==tgt.loc then return print("Cannot delete active device!".color(__errC))
+package.Netmap[tgt.pub].devices.remove(tgt.loc)
+tgt.obj=""
+tgt.lib=""
+tgt.loc=""
+else if tgt.pub!="" then
+if package.thisC.public_ip==tgt.pub then return print("Cannot delete active network!".color(__errC))
+package.Netmap.remove(tgt.pub)
+tgt.obj=""
+tgt.lib=""
+tgt.loc=""
+tgt.pub=""
+end if
+print("Target released".color(__retC))
+end function
+mainMap.rshell={}
+mainMap.rshell.use="Usage: rshell <b>(-s/-c/-i)</b>"
+mainMap.rshell.desc="Start an rshell server, rshell client or interface with a target rshell server."
+mainMap.rshell.minPar=1
+mainMap.rshell.alias=[]
+mainMap.rshell.run=function(x)
+session=package.Depth[package.Session]
+tgt=session.target
+if x[0]=="-c" then
+server=user_input("Enter server IP: ")
+if not is_valid_ip(server) then server=package.Depth[package.Session-1].target.loc
+if not is_valid_ip(server) then return print("Invalid IP!".color(__errC))
+port=user_input("Enter port to use: ").to_int
+if not port isa number or port<0 or port>65535 then port=25565
+name=""
+name=user_input("Name of proc: ").trim
+if name=="" then name="Minecraft"
+resProcs=["dsession","kernel_task","xorg","ssh_enc"]
+if resProcs.indexOf(name)!=null then return print((name+" is a reserved process name").color(__errC))
+out=package.Depth[package.Session].Mx.lib.rshell_client(server,port,name)
+if out isa string then print(out.color(__errC))
+else if x[0]=="-s" then
+if package.Session==0 then
+i=user_input("You are about to install an rshell server on your home system, this isn't advisable!".color(__errC)+"\nAre you sure you want to do this? (y/N) ")
+if i!="y" then return print(("Operation canceled!").color(__errC))
+end if
+hc=package.thisC
+if not package.Netmap.hasIndex(hc.public_ip) then
+net=new Network
+net.devices={}
+package.Netmap[hc.public_ip]=net
+end if
+if not package.Netmap[hc.public_ip].devices.hasIndex(hc.local_ip) then
+dev=new Device
+dev.type=mainMenu.getTypeOf(hc.local_ip)
+dev.ports={}
+dev.libs={}
+package.Netmap[hc.public_ip].devices[hc.local_ip]=dev
+end if
+dev=package.Netmap[hc.public_ip].devices[hc.local_ip]
+if dev.rss and user_input("Rshell server already installed, uninstall? (y/N): ")=="y" then
+out=dev.rss.rshelld.stop_service
+if out isa string then return print(out.color(__errC))
+print("Rshell server stopped!".color(__retC))
+dev.rss=null
+end if
+if not dev.rss then
+out=package.Depth[0].shell.scp(package.librshell.path,"/lib/",session.shell)
+if out isa string then return print(out.color(__errC))
+rss=new RshellServer
+rss.Mx=session.Mx
+rss.rshelld=include_lib("/lib/librshell.so")
+if not rss.rshelld then return print("I couldn't find the lib!".color(__errC))
+out=rss.rshelld.install_service
+if out isa string then print(out.color(__errC))
+dev.rss=rss
+if dev.rss then print(("Rshell server installed on "+hc.public_ip+"-"+hc.local_ip).color(__retC))
+else
+dev.rss.Mx=session.Mx
+rshelld=include_lib("/lib/librshell.so")
+if typeof(rshelld)=="service" then dev.rss.rshelld=rshelld
+print("Rshell server already installed on this device!".color(__errC))
+end if
+else if x[0]=="-i" then
+if tgt.pub=="" or tgt.loc=="" then return print("Select a target rshell server!".color(__errC))
+rss=package.Netmap[tgt.pub].devices[tgt.loc].rss
+if not rss then return print("There is no rshell server on this system!".color(__errC))
+shells=rss.Mx.lib.rshell_server
+if shells isa string then return print(shells.color(__errC))
+info="No Shells Found!"
+if shells.len!=0 then
+info="LEVEL PUBLIC LOCAL"
+for shell in shells
+hc=host_computer(shell)
+access=mainMenu.fakeLib(shell,hc,"RSS")
+info=info+char(10)+access+" "+hc.public_ip+" "+hc.local_ip
+end for
+end if
+print(format_columns(info))
+end if
+end function
+mainMap.jump={}
+mainMap.jump.use="Usage: jump <b>[-l]</b>"
+mainMap.jump.desc="Jump to target computer optional log clear."
+mainMap.jump.minPar=0
+mainMap.jump.alias=[]
+mainMap.jump.run=function(x)
+if package.Session==12 then return print("You are only able to reach a depth of 12 please exit some sessions before going deeper!".color(__errC))
+if x and x.hasIndex(0) and x[0]=="-l" then mainMenu.cl
+tgt=package.Depth[package.Session].target
+if tgt.obj=="" then return print("You need to select a target shell".color(__errC))
+shell=package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
+if not shell isa __shell and typeof(shell)!="ftpshell" then return print("That isn't a shell!".color(__errC))
+getD=mainMenu.getDrop(File(host_computer(shell),"/"))
+if not getD then return print("Couldn't find a place to drop!".color(__errC))
+loc=getD.path
+package.Depth[0].shell.scp(package.unity.path,loc,shell)
+shell.host_computer.File(loc+"/unity").rename(package.InstanceId)
+package.Session=package.Session+1
+launch(shell,loc+"/"+package.InstanceId)
+package.thisC=host_computer(get_shell)
+if package.Session!=0 then
+package.Depth.remove(package.Session)
+package.Session=package.Session-1
+end if
+mainMenu.displayInfo
+end function
+mainMap.alias={}
+mainMap.alias.use="Usage: alias <b>(cmd)</b>"
+mainMap.alias.desc="Alias a command to respond to a set input."
+mainMap.alias.minPar=1
+mainMap.alias.alias=[]
+mainMap.alias.run=function(x)
+if not mainMenu.cmd.hasIndex(x[0]) then return print("Invalid command!".color(__errC))
+a=user_input("Enter desired alias for "+x[0]+": ").trim
+if a.len<2 then return print("Alias must be at least 2 characters!".color(__errC))
+if a!=a.lower then return print("Alias must be lowercase!".color(__errC))
+if mainMenu.cmd.hasIndex(a) then return print("Alias conflicts with existing command!".color(__errC))
+alias=x[0]+":"+a
+data=package.aliasmap.get_content
+if data==null then return print("Alias map file not found or permissions denied!".color(__errC))
+if data.is_match(a) then return print("Alias already exists!".color(__errC))
+data=data.split(char(10))
+if data==null then data=[]
+if data.len!=0 and data.indexOf(alias)!=null then return print("Alias already exists!".color(__errC))
+data.push(alias)
+package.aliasmap.set_content(data.join(char(10)))
+mainMenu.cmd[x[0]].alias.push(a)
+print("Alias set!".color(__retC))
+end function
+mainMap.exit={}
+mainMap.exit.use="Usage: exit <b>[-l]</b>"
+mainMap.exit.desc="Exit layer optional log clear on leave."
+mainMap.exit.minPar=0
+mainMap.exit.alias=[]
+mainMap.exit.run=function(x)
+if x[0]=="-l" then mainMenu.cl
+if package.Session!=0 then exit("Exiting depth "+package.Session)
+if user_input("Are you sure you want to exit Unity fully?".color(__errC)+"\nType ""exit"" again to completely exit Unity: ".color(__errC))!="exit" then return 
+exit("Unity shutting down...")
+end function
+print("Loading alias map...")
+aliasload=package.aliasmap.get_content
+if aliasload==null then exit("Error loading alias map!")
+aliaslist=aliasload.split(char(10))
+for alias in aliaslist
+sp=alias.split(":")
+if mainMap.hasIndex(sp[0]) then mainMap[sp[0]].alias.push(sp[1])
+end for
+x=new self
+x.cmd=mainMap
+return x
+end function
+Menu.cl=function(arg="")
+obj=package.Depth[package.Session].shell
+if arg=="-t" then
+tgt=package.Depth[package.Session].target
+obj=package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
+end if
+folder=null
+if obj isa __shell or typeof(obj)=="ftpshell" then folder=File(host_computer(obj),"/etc")
+if obj isa __computer then folder=File(obj,"/etc")
+if obj isa __file then folder=self.toRoot(obj).get_folders.first("path","/etc")
+if not folder or not folder.get_files.first("name","fstab") then
+if obj isa __shell or typeof(obj)=="ftpshell" then
+comp=host_computer(obj)
+else if obj isa __computer then
+comp=obj
+else
+return print("You can't clear a log on a corrupted device without a root shell or computer!".color(__errC))
+end if
+out=comp.touch("/var","temp")
+if out isa string then return print(out.color(__errC))
+wait(0.02)
+file=comp.File("/var/temp")
+if not file then return print("File not found!".color(__errC))
+file.set_content(package.Sig)
+out=file.move("/var/","system.log")
+if out isa string then return print(out.color(__errC))
+return print("Log cleared".color(__retC))
+end if
+if not folder.has_permission("w") then return print("You dont have permission to clear the log!".color(__errC))
+file=folder.get_files.first("name","fstab")
+res=file.copy("/etc","log")
+if res isa string then return print(res.color(__errC))
+wait(0.02)
+logfile=folder.get_files.first("name","log")
+logfile.set_content(package.Sig)
+res=logfile.move("/var/","system.log")
+if res isa string then return print(res.color(__errC))
+print("Log cleared".color(__retC))
+end function
+Menu.BackupGco=function
+self.gco={}
+for each in package
+self.gco[each.key]=each.value
+end for
+end function
+Menu.ClearGco=function
+for each in package
+remove(package,each.key)
+end for
+end function
+Menu.RestoreGco=function
+if package.len!=0 then
+red="<color=red>"
+print(red+"Injection found!")
+print(red+indexes(package).join(char(10)+red))
+self.ClearGco
+end if
+for each in self.gco
+package[each.key]=each.value
+end for
+self.gco=null
+end function
+Menu.portscan=function(address)
+print(("Scanning "+address+"... Please wait...").color("#f5a8b8"))
+isLanIp=is_lan_ip(address)
+if isLanIp then
+type=self.getTypeOf(address)
+if type=="device" then router=get_router
+if type!="device" then self.routerscan(address)
+if type=="router" then router=get_router(address)
+if type=="switch" then router=get_switch(address)
+else
+router=get_router(address)
+end if
+if router==null then return print("I can't find that address!".color(__errC))
+print("Kernel v"+router.kernel_version+" found!")
+ports=null
+pub=router.public_ip
+if not package.Netmap.hasIndex(pub) then
+print("This is new! I'll take notes...".color("#f5a8b8"))
+net=new Network
+net.devices={}
+rtr=new Device
+rtr.libs={}
+rtr.ports={}
+rtr.type="router"
+net.devices[router.local_ip]=rtr
+package.Netmap[pub]=net
+else
+print("We've been here before.".color("#f5a8b8"))
+end if
+if not isLanIp then
+ports=router.used_ports
+else
+ports=router.device_ports(address)
+end if
+if not ports then return print(("No ports found for device "+address).color(__errC))
+if ports isa string then return print(ports.color(__errC))
+info="PORT STATE SERVICE VERSION LAN"
+if ports isa string then return print(format_columns(info+char(10)+ports.port_number+" "+router.port_info(ports)+" "+ports.get_lan_ip))
+if ports.len==0 then return print("I didn't find any ports... Sorry.".color(__errC))
+for port in ports
+service=router.port_info(port)
+lan=port.get_lan_ip
+portstat="open"
+if port.is_closed and not isLanIp then
+portstat="closed"
+end if
+info=info+char(10)+port.port_number+" "+portstat+" "+service+" "+lan
+if not package.Netmap[pub].devices.hasIndex(lan) then
+devtype=self.getTypeOf(lan)
+dev=new Device
+dev.libs={}
+dev.type=devtype
+print("New "+devtype+"! Saving info...".color("#5bcff9"))
+dev.ports={}
+package.Netmap[pub].devices[lan]=dev
+else
+print("I already know this device.".color("#5bcff9"))
+end if
+if service.is_match("unknown") then continue
+package.Netmap[pub].devices[lan].ports[port.port_number]=port
+end for
+print(format_columns(info)+char(10))
+end function
+Menu.routerscan=function(address)
+type=mainMenu.getTypeOf(address)
+if type=="device" then return "This is a device!"
+router=null
+if type=="switch" then router=get_switch(address)
+if type=="router" then router=get_router(address)
+info="No Firewall found!"
+rules=router.firewall_rules
+if rules.len>0 then
+info="ACTION PORT SOURCE DESTINATION"
+for rule in rules
+info=info+"\n"+rule
+end for
+info=format_columns(info)
+end if
+print(type+" : "+router.bssid_name+" - "+router.essid_name)
+print(info)
+end function
+Menu.userScan=function(mem,unsec)
+tgt=package.Depth[package.Session].target
+if tgt.lib=="" then return "You need a library first!".color(__errC)
+d=package.Netmap[tgt.pub].devices[tgt.loc]
+if d.type!="router" then return "This can only be performed on a router!".color(__errC)
+lib=d.libs[tgt.lib]
+metaLib=lib.lib
+package.devList=[]
+router=get_router
+mainMenu.getDevicesOf(router)
+ul={}
+for dev in package.devList
+if not is_valid_ip(dev) or not is_lan_ip(dev) then continue
+res=metaLib.overflow(mem,unsec,dev)
+if not res then continue
+if typeof(res)!="computer" then return "That is not a computer exploit!".color(__errC)
+for user in res.File("/home").get_folders.wherenot("name","guest")
+if user.name=="cctv" then
+print("Device is CCTV.".color(__retC))
+continue
+else if user.name=="iot" then
+print("Device is IOT.".color(__retC))
+continue
+end if
+u=new User
+u.dev=dev
+f=user.get_folders.first("name","Config").get_files.first("name","Mail.txt")
+if f then
+c=f.get_content
+if not c.indexOf(":") then
+print(("Mail error: User: "+user.name+" at IP: "+dev).color(__errC))
+else
+sp=c.split(":")
+u.mail=sp[0]
+u.pass=sp[1]
+end if
+else
+print(("Mail error: Mail.txt not found for user: "+user.name).color(__errC))
+end if
+ul[user.name]=u
+end for
+end for
+package.devList=null
+if ul.len>0 then return ul
+return "No users found in network!".color(__errC)
+end function
+Menu.getDevicesOf=function(router)
+devip=router.local_ip
+if package.devList.indexOf(devip)==null then package.devList.push(devip)
+devs=router.devices_lan_ip
+for dev in devs
+if dev!=devip then
+if is_valid_ip(dev) then
+devtype=self.getTypeOf(dev)
+if devtype=="router" and package.devList.indexOf(dev)==null then
+package.devList.push(dev)
+self.getDevicesOf(get_router(dev))
+else if devtype=="switch" and package.devList.indexOf(dev)==null then
+package.devList.push(dev)
+self.getDevicesOf(get_switch(dev))
+else if devtype=="device" and package.devList.indexOf(dev)==null then
+package.devList.push(dev)
+end if
+end if
+end if
+end for
+spl=devip.split("\.")
+if spl[-1]!="1" and devs.indexOf(spl[0:2].join("\.")+"1")==null then
+for i in range(1,spl[-1].to_int-1)
+if package.devList.indexOf(spl[0:2].join("\.")+i)==null then package.devList.push(spl[0:2].join("\.")+i)
+end for
+end if
+end function
+Menu.parse=function(address)
+if not package.Netmap.hasIndex(address) then
+net=new Network
+net.devices={}
+package.Netmap[address]=net
+end if
+for d in package.devList
+if not package.Netmap[address].devices.hasIndex(d) then
+self.portscan(d)
+end if
+end for
+end function
+Menu.moveTo=function(lib)
+print(("Couldn't find "+lib+"!").color(__errC)+"\nLocating and moving to current path...")
+f=package.thisC.File("/lib/"+lib)
+if not f then return ("Couldn't find "+lib+", unity requires "+lib+" in the executing folder!".color(__errC))
+return f.move(__AppPath,lib)
+end function
+Menu.updateLibs=function
+hc=package.thisC
+acf=hc.File(__AppPath+"/aptclient.so")
+if not acf then
+out=self.moveTo("aptclient.so")
+if out isa string then exit(out.color(__errC))
+acf=hc.File(__AppPath+"/aptclient.so")
+end if
+if not acf then exit("Error: Aptclient.so was not found!".color(__errC))
+aptclient=include_lib(acf.path)
+if aptclient.search("metaxploit.so").is_match("not found") then
+hackshop=user_input("ERROR: Hackshop not found!".color(__errC)+"\nUnity needs the hackshop to download metaxploit and librshell!\n Enter a hackshop IP: ")
+if not is_valid_ip(hackshop) or is_lan_ip(hackshop) then exit("That is an invalid hackshop IP!".color(__errC))
+out=aptclient.add_repo(hackshop)
+if not isNullOrEmpty(out) then exit(out.color(__errC))
+aptclient.update
+if aptclient.search("metaxploit.so").is_match("not found") then exit("That is not a repo! Please delete /etc/apt/sources.txt and try again!".color(__errC))
+end if
+print("Updating Metaxploit...".color("blue"))
+aptclient.install("metaxploit.so",__AppPath)
+if not hc.File(__AppPath+"/crypto.so") then self.moveTo("crypto.so")
+if not hc.File(__AppPath+"/crypto.so") then
+print("Updating Crypto...".color("yellow"))
+aptclient.install("crypto.so",__AppPath)
+end if
+if not hc.File(__AppPath+"/librshell.so") then
+print("Updating Rshell...".color("purple"))
+aptclient.install("librshell.so",__AppPath)
+end if
+if not hc.File(__AppPath+"/libssh.so") then
+print("Updating SSH...".color(__errC))
+aptclient.install("libssh.so",__AppPath)
+end if
+if not hc.File(__AppPath+"/libtrafficnet.so") then
+print("Updating TrafficNet...".color("orange"))
+aptclient.install("libtrafficnet.so",__AppPath)
+end if
+print("Libs up to date!".color(__retC))
+end function
+Menu.incMx=function
+if package.Session!=0 then package.Depth[0].shell.scp(package.MxF.path,package.thisC.File(__AppPath).path,package.Depth[package.Session].shell)
+mx=include_lib(__AppPath+"/metaxploit.so")
+if not mx then return print("Failed to include local mx".color("red"))
+mXo=new Tool
+mXo.lib=mx
+mXo.pubIp=package.thisC.public_ip
+mXo.locIp=package.thisC.local_ip
+mXo.ver=mx.load(__AppPath+"/metaxploit.so").version
+package.Depth[package.Session].Mx=mXo
+end function
+Menu.incCr=function
+ver=""
+cr=self.tempCr
+if cr isa string then return print(cr)
+package.Cr=cr
+end function
+Menu.tempCr=function
+shell=package.Depth[package.Session].shell
+loc="/lib"
+cr=include_lib(loc+"/crypto.so")
+if not cr then
+loc=__AppPath
+cr=include_lib(loc+"/crypto.so")
+if not cr then
+loc=self.getDrop(File(host_computer(shell),"/")).path
+if not loc then return "couldn't find drop for crypto"
+cp=package.Depth[0].shell.scp(package.CrF.path,loc,shell)
+if cp isa string then return cp
+cr=include_lib(loc+"/crypto.so")
+if not cr then return "couldn't find crypto"
+end if
+end if
+ver=package.Depth[package.Session].Mx.lib.load(loc+"/crypto.so").version
+hc=package.Depth[package.Session].shell.host_computer
+cRo=new Tool
+cRo.lib=cr
+cRo.pubIp=hc.public_ip
+cRo.locIp=hc.local_ip
+cRo.ver=ver
+return cRo
+end function
+Menu.incAc=function
+if active_user!="root" then return 
+loc="/lib/aptclient.so"
+ac=include_lib(loc)
+if not ac then
+if package.Session!=0 then package.Depth[0].shell.scp(package.AcF.path,package.thisC.File(__AppPath).path,package.Depth[package.Session].shell)
+loc=__AppPath+"/aptclient.so"
+ac=include_lib(loc)
+end if
+if not ac or typeof(ac)!="aptclientLib" then return print("Error: Aptclient not found on system and couldn't be moved up!".color(__errC))
+ver=package.Depth[package.Session].Mx.lib.load(loc).version
+aCo=new Tool
+aCo.lib=ac
+aCo.pubIp=package.thisC.public_ip
+aCo.locIp=package.thisC.local_ip
+aCo.ver=ver
+package.Depth[package.Session].Ac=aCo
+end function
+Menu.displayInfo=function
+print("<align=""center"">"+("#"*60)+"</align>")
+print("<align=""center"">"+(("Metaxploit v"+package.Depth[0].Mx.ver+" | "+"Aptclient v"+package.Depth[0].Ac.ver).color("#5bcff9"))+"</align>")
+print("<align=""center"">"+(("Crypto "+package.Cr.pubIp+" - "+package.Cr.locIp+" v"+package.Cr.ver).color("#f5a8b8"))+"</align>")
+print("<align=""center"">"+(("Session# "+package.Session+" Loc "+package.thisC.public_ip+" - "+package.thisC.local_ip).color("white"))+"</align>")
+print("<align=""center"">"+(("ID "+package.InstanceId).color("#f5a8b8"))+"</align>")
+print("<align=""center"">"+("#"*60)+"</align>")
+end function
+Menu.getTypeOf=function(dev)
+r=get_router(dev)
+s=get_switch(dev)
+if r and not s then return "router"
+if r and s then return "switch"
+return "device"
+end function
+Menu.fakeLib=function(shell,hc,name)
+if not package.Netmap.hasIndex(hc.public_ip) then
+net=new Network
+net.devices={}
+package.Netmap[hc.public_ip]=net
+end if
+if not package.Netmap[hc.public_ip].devices.hasIndex(hc.local_ip) then
+dev=new Device
+dev.type=self.getTypeOf(hc.local_ip)
+dev.ports={}
+dev.libs={}
+package.Netmap[hc.public_ip].devices[hc.local_ip]=dev
+end if
+if not package.Netmap[hc.public_ip].devices[hc.local_ip].libs.hasIndex(name) then
+lib=new Library
+lib.loc="local"
+lib.ver="1.0.0"
+lib.objects={}
+package.Netmap[hc.public_ip].devices[hc.local_ip].libs[name]=lib
+end if
+obj=new Object
+obj.obj=shell
+obj.access=mainMenu.probe(shell)
+m=md5(hc.public_ip+"-"+hc.local_ip)[:4]
+package.Netmap[hc.public_ip].devices[hc.local_ip].libs[name].objects["shell "+m]=obj
+return obj.access
+end function
+Menu.allFolders=function(folder)
+self.fMap.push(folder)
+for f in folder.get_folders
+self.allFolders(f)
+end for
+end function
+Menu.targetC=function(command)
+tgt=package.Depth[package.Session].target
+if tgt.obj=="" then return "No object selected!".color(__errC)
+obj=package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
+if obj isa __file then return ("You need at least a computer to use "+command+"!").color(__errC)
+if obj isa __shell or typeof(obj)=="ftpshell" then obj=host_computer(obj)
+return obj
+end function
+Menu.getDrop=function(folder)
+self.fMap=[]
+self.allFolders(folder)
+f=self.fMap.first("has_permission","w")
+if f!=null then return f
+return null
+end function
+Menu.probe=function(obj)
+file=obj
+if file isa __shell or typeof(file)=="ftpshell" then file=File(host_computer(file),"/")
+if file isa __computer then file=File(file,"/")
+if file isa __file then file=self.toRoot(file) else return print("Object is not an acceptable type! ".color(__errC)+typeof(file)+" "+file)
+if not file then return "unknown"
+root=file.get_folders.first("path","/root")
+if root and root.has_permission("r") and root.has_permission("w") and root.has_permission("x") then return "root"
+home=file.get_folders.first("path","/home")
+if home then
+users=home.get_folders.wherenot("path","/home/guest")
+if users and users.len!=0 and users.first("has_permission","rwx") then return "user"
+end if
+return "guest"
+end function
+Menu.toRoot=function(f)
+while parent(f)
+f=parent(f)
+end while
+return f
+end function
+Menu.rndOct=function
+return floor(rnd*255)
+end function
+Menu.rndIp=function
+ip=""
+while not is_valid_ip(ip) or is_lan_ip(ip) or whois(ip).is_match("Address not found")
+ip=self.rndOct+"."+self.rndOct+"."+self.rndOct+"."+self.rndOct
+end while
+return ip
+end function
+Menu.help=function
+for each in self.cmd.indexes
+if self.cmd[each].hasIndex("run") and self.cmd[each].hasIndex("desc") then print(self.cmd[each].use.color(__useC)+"\n"+self.cmd[each].desc.color(__descC))
+end for
+end function
+Menu.CommandHandler=function(command)
+command=command.split(" ")
+if not self.cmd.hasIndex(command[0].lower) then
+for cmd in self.cmd
+if self.cmd[cmd.key].alias.indexOf(command[0].lower)!=null then command[0]=cmd.key
+end for
+end if
+if self.cmd.hasIndex(command[0].lower) then
+if self.cmd[command[0].lower].minPar>command[1:].len or (command.hasIndex(1) and command[1]=="-h") then
+print(self.cmd[command[0].lower].use.color(__useC)+"\n"+self.cmd[command[0].lower].desc.color(__descC))
+return 
+end if
+f=@self.cmd[command[0].lower].run
+if command.len>1 then f(command[1:]) else f
+else
+print("Invalid command!".color(__errC))
+end if
+end function
+Menu.run=function
+self.displayInfo
+while true
+tgt=package.Depth[package.Session].target
+info=""
+if tgt.loc!="" then
+dev=package.Netmap[tgt.pub].devices[tgt.loc]
+if dev.netsession then
+ns=dev.netsession
+au="X"
+if ns.is_any_active_user then au="N"
+if ns.is_root_active_user then au="R"
+rss=""
+if dev.rss then rss=" - "+("Rshell".color("#DD00FF"))
+tnet=""
+if dev.tnet then tnet=" - "+("Traffic".color("#87ffcd"))
+info="A<sub>"+au+"</sub> U<sub>"+ns.get_num_users+"</sub> P<sub>"+ns.get_num_portforward+"</sub> G<sub>"+ns.get_num_conn_gateway+"</sub>"+rss+tnet
+end if
+end if
+target="No Target!".color(__errC)
+if tgt.pub!="" then target=(tgt.pub+"-"+tgt.loc+"-"+tgt.lib+"-"+tgt.obj).color(__retC)
+print(info)
+userChoice=user_input(("<size=80%>"+target+"</size>"+"<pos=0%><voffset=-1.2em>"+"["+active_user+"@"+package.thisC.get_name+" "+package.Session+"] <color="+__promptC+">"),0,0,1).trim
+if userChoice=="" then continue
+if userChoice=="-h" or userChoice=="help" then
+self.help
+continue
+end if
+if userChoice.indexOf("&&")!=null then
+commands=userChoice.split("&&")
+commands.trim
+if commands.len>1 then
+for each in commands
+self.CommandHandler(each.trim)
+end for
+continue
+end if
+end if
+self.CommandHandler(userChoice)
+end while
+end function
+mainMenu=Menu.init
+mainMenu.run

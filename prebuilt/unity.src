@@ -1,9 +1,12 @@
-__v="v2.1.1"
+__v="v2.1.4"
 __promptC="#fc03a9"
 __retC="green"
 __errC="red"
 __useC="purple"
 __descC="#f5a8b8"
+__CelCoPath="/celestial"
+__AppPath=__CelCoPath+"/unity"
+__DbPath=__AppPath+"/VDB"
 package=@get_custom_object
 __shell=get_shell
 __computer=__shell.host_computer
@@ -177,9 +180,9 @@ end for
 return null
 end function
 mktargf=function(i)
-out=outer.hc.touch(current_path+"/VDB/","unsec"+i+".db")
+out=outer.hc.touch(__DbPath,"unsec"+i+".db")
 if out isa string then exit(out)
-return File(outer.hc,current_path+"/VDB/unsec"+i+".db")
+return File(outer.hc,__DbPath+"/unsec"+i+".db")
 end function
 libdb=package.VDB.get_folders.first("name",lib.lib_name)
 if not libdb then
@@ -840,59 +843,73 @@ if not isShellLaunch then
 if active_user!="root" then exit("Unity must be run as root for multiple functions to work!".color(__errC))
 print("\n<align=""center"">Celestial Tools"+char(169)+"</align>\n<align=""center""><size=50px>Unity</size></align>\n<align=""center"">"+__v+"-Ultimate</align>\n")
 print("Initializing...")
-if program_path.split("/")[-1].is_match("dddd") then package.thisC.File(current_path+"/dddd").move(current_path,"unity")
-package.unity=package.thisC.File(current_path+"/unity")
-if not package.unity then exit("Unity was not found and is likely improperly named, please try again!".color(__errC))
+if not program_path.split("/")[-1].is_match("unity") then package.thisC.File(program_path).move(program_path.split("/")[:-1].join("/"),"unity")
+package.unity=package.thisC.File(program_path.split("/")[:-1].join("/")+"/unity")
+appPath=package.thisC.File(__AppPath)
+if not appPath then
+print("AppPath not found, creating...")
+last="/"
+for step in __AppPath.split("/")
+if isNullOrEmpty(step) then continue
+out=package.thisC.create_folder(last,step)
+if out isa string then exit(("AppPath creation "+out).color(__errC))
+if last=="/" then
+last=last+step
+else
+last=last+"/"+step
+end if
+end for
+end if
 package.user=active_user
-package.exePath=current_path
+package.exePath=__AppPath
 package.Sig="<size=""40px"">Unity"
-package.sigfile=package.thisC.File(current_path+"/sig.src")
+package.sigfile=package.thisC.File(__AppPath+"/sig.src")
 if package.sigfile then package.Sig=package.sigfile.get_content[3:-1]
 package.Session=0
 package.Depth={}
 package.Netmap={}
 self.updateLibs
-package.MxF=package.thisC.File(current_path+"/metaxploit.so")
-package.CrF=package.thisC.File(current_path+"/crypto.so")
-package.AcF=package.thisC.File(current_path+"/aptclient.so")
-package.librshell=package.thisC.File(current_path+"/librshell.so")
-package.libssh=package.thisC.File(current_path+"/libssh.so")
-package.libtraffic=package.thisC.File(current_path+"/libtrafficnet.so")
-amap=package.thisC.File(current_path+"/alias.map")
+package.MxF=package.thisC.File(__AppPath+"/metaxploit.so")
+package.CrF=package.thisC.File(__AppPath+"/crypto.so")
+package.AcF=package.thisC.File(__AppPath+"/aptclient.so")
+package.librshell=package.thisC.File(__AppPath+"/librshell.so")
+package.libssh=package.thisC.File(__AppPath+"/libssh.so")
+package.libtraffic=package.thisC.File(__AppPath+"/libtrafficnet.so")
+amap=package.thisC.File(__AppPath+"/alias.map")
 if not amap then
 print("Alias map not found, creating new alias map...")
-out=package.thisC.touch(current_path,"alias.map")
+out=package.thisC.touch(__AppPath,"alias.map")
 if out isa string then exit(("Alias map creation "+out).color(__errC))
-amap=package.thisC.File(current_path+"/alias.map")
+amap=package.thisC.File(__AppPath+"/alias.map")
 end if
 package.aliasmap=amap
-vdb=package.thisC.File(current_path+"/VDB")
+vdb=package.thisC.File(__DbPath)
 if not vdb then
 print("Database not found, creating new database...")
-out=package.thisC.create_folder(current_path,"VDB")
+out=package.thisC.create_folder(__AppPath,"VDB")
 if out isa string then exit(("Database creation "+out).color(__errC))
-vdb=package.thisC.File(current_path+"/VDB")
+vdb=package.thisC.File(__DbPath)
 end if
 package.VDB=vdb
-memdb=package.thisC.File(current_path+"/VDB/mem.db")
+memdb=package.thisC.File(__DbPath+"/mem.db")
 if not memdb then
 print("Memory database not found, creating new database...")
-out=package.thisC.touch(current_path+"/VDB","mem.db")
+out=package.thisC.touch(__DbPath,"mem.db")
 if out isa string then exit(("Memory creation "+out).color(__errC))
-memdb=package.thisC.File(current_path+"/VDB/mem.db")
+memdb=package.thisC.File(__DbPath+"/mem.db")
 end if
 package.MemDb=memdb
 unsecdb=[]
 i=0
 for db in package.VDB.get_files.where("namehas","unsec")
-unsecdb.push(package.thisC.File(current_path+"/VDB/unsec"+i+".db"))
+unsecdb.push(package.thisC.File(__DbPath+"/unsec"+i+".db"))
 i=i+1
 end for
 if unsecdb.len==0 then
 print("Target database not found, creating new database...")
-out=package.thisC.touch(current_path+"/VDB","unsec0.db")
+out=package.thisC.touch(__DbPath,"unsec0.db")
 if out isa string then exit(("Target creation "+out).color(__errC))
-unsecdb.push(package.thisC.File(current_path+"/VDB/unsec0.db"))
+unsecdb.push(package.thisC.File(__DbPath+"/unsec0.db"))
 end if
 package.UnsecDb=unsecdb
 end if
@@ -1535,9 +1552,9 @@ end if
 dev=package.Netmap[hc.public_ip].devices[hc.local_ip]
 tnet=include_lib("/lib/libtrafficnet.so")
 if not tnet then
-out=package.Depth[0].shell.scp(package.libtraffic.path,current_path,session.shell)
+out=package.Depth[0].shell.scp(package.libtraffic.path,__AppPath,session.shell)
 if out isa string then return print(out.color(__errC))
-tnet=include_lib(current_path+"/libtrafficnet.so")
+tnet=include_lib(__AppPath+"/libtrafficnet.so")
 if not tnet then return print("I couldn't find the lib!".color(__errC))
 end if
 dev.tnet=tnet
@@ -2827,15 +2844,15 @@ Menu.moveTo=function(lib)
 print(("Couldn't find "+lib+"!").color(__errC)+"\nLocating and moving to current path...")
 f=package.thisC.File("/lib/"+lib)
 if not f then return ("Couldn't find "+lib+", unity requires "+lib+" in the executing folder!".color(__errC))
-return f.move(current_path,lib)
+return f.move(__AppPath,lib)
 end function
 Menu.updateLibs=function
 hc=package.thisC
-acf=hc.File(current_path+"/aptclient.so")
+acf=hc.File(__AppPath+"/aptclient.so")
 if not acf then
 out=self.moveTo("aptclient.so")
 if out isa string then exit(out.color(__errC))
-acf=hc.File(current_path+"/aptclient.so")
+acf=hc.File(__AppPath+"/aptclient.so")
 end if
 if not acf then exit("Error: Aptclient.so was not found!".color(__errC))
 aptclient=include_lib(acf.path)
@@ -2848,34 +2865,35 @@ aptclient.update
 if aptclient.search("metaxploit.so").is_match("not found") then exit("That is not a repo! Please delete /etc/apt/sources.txt and try again!".color(__errC))
 end if
 print("Updating Metaxploit...".color("blue"))
-aptclient.install("metaxploit.so",current_path)
-if not hc.File(current_path+"/crypto.so") then self.moveTo("crypto.so")
-if not hc.File(current_path+"/crypto.so") then
+aptclient.install("metaxploit.so",__AppPath)
+if not hc.File(__AppPath+"/crypto.so") then self.moveTo("crypto.so")
+if not hc.File(__AppPath+"/crypto.so") then
 print("Updating Crypto...".color("yellow"))
-aptclient.install("crypto.so",current_path)
+aptclient.install("crypto.so",__AppPath)
 end if
-if not hc.File(current_path+"/librshell.so") then
+if not hc.File(__AppPath+"/librshell.so") then
 print("Updating Rshell...".color("purple"))
-aptclient.install("librshell.so",current_path)
+aptclient.install("librshell.so",__AppPath)
 end if
-if not hc.File(current_path+"/libssh.so") then
+if not hc.File(__AppPath+"/libssh.so") then
 print("Updating SSH...".color(__errC))
-aptclient.install("libssh.so",current_path)
+aptclient.install("libssh.so",__AppPath)
 end if
-if not hc.File(current_path+"/libtrafficnet.so") then
+if not hc.File(__AppPath+"/libtrafficnet.so") then
 print("Updating TrafficNet...".color("orange"))
-aptclient.install("libtrafficnet.so",current_path)
+aptclient.install("libtrafficnet.so",__AppPath)
 end if
 print("Libs up to date!".color(__retC))
 end function
 Menu.incMx=function
-if package.Session!=0 then package.Depth[0].shell.scp(package.MxF.path,package.thisC.File(current_path).path,package.Depth[package.Session].shell)
-mx=include_lib(current_path+"/metaxploit.so")
+if package.Session!=0 then package.Depth[0].shell.scp(package.MxF.path,package.thisC.File(__AppPath).path,package.Depth[package.Session].shell)
+mx=include_lib(__AppPath+"/metaxploit.so")
+if not mx then return print("Failed to include local mx".color("red"))
 mXo=new Tool
 mXo.lib=mx
 mXo.pubIp=package.thisC.public_ip
 mXo.locIp=package.thisC.local_ip
-mXo.ver=mx.load(current_path+"/metaxploit.so").version
+mXo.ver=mx.load(__AppPath+"/metaxploit.so").version
 package.Depth[package.Session].Mx=mXo
 end function
 Menu.incCr=function
@@ -2889,7 +2907,7 @@ shell=package.Depth[package.Session].shell
 loc="/lib"
 cr=include_lib(loc+"/crypto.so")
 if not cr then
-loc=current_path
+loc=__AppPath
 cr=include_lib(loc+"/crypto.so")
 if not cr then
 loc=self.getDrop(File(host_computer(shell),"/")).path
@@ -2914,8 +2932,8 @@ if active_user!="root" then return
 loc="/lib/aptclient.so"
 ac=include_lib(loc)
 if not ac then
-if package.Session!=0 then package.Depth[0].shell.scp(package.AcF.path,package.thisC.File(current_path).path,package.Depth[package.Session].shell)
-loc=current_path+"/aptclient.so"
+if package.Session!=0 then package.Depth[0].shell.scp(package.AcF.path,package.thisC.File(__AppPath).path,package.Depth[package.Session].shell)
+loc=__AppPath+"/aptclient.so"
 ac=include_lib(loc)
 end if
 if not ac or typeof(ac)!="aptclientLib" then return print("Error: Aptclient not found on system and couldn't be moved up!".color(__errC))
