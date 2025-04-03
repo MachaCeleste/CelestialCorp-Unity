@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.1.7"
+__v = "v2.1.10"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -330,6 +330,7 @@ FXploreMenu = {}
                         if p != "" then
                             steps = p.split("/")
                             for step in steps
+                                if isNullOrEmpty(step) then continue
                                 ret = navigate(step)
                                 if ret isa string then return print(ret)
                                 folder = ret
@@ -918,7 +919,9 @@ Menu = {}
         package.Depth[package.Session] = {}
         package.Depth[package.Session].shell = get_shell
         package.Depth[package.Session].target = new Target
-        package.Depth[package.Session].loc = program_path.split("/")[:-1].join("/")
+        loc = "/"
+        if program_path.split("/")[:-1].join("/") > 0 then loc = program_path.split("/")[:-1].join("/")
+        package.Depth[package.Session].loc = loc
         self.incMx
         self.incAc
         if not isShellLaunch then
@@ -2219,7 +2222,7 @@ Menu = {}
                     end for
                     print(metaLib.lib_name + " v" + metaLib.version + " found!")
                     for each in outD
-                        print each
+                        print(each)
                     end for
                 end function
             mainMap.overflow = {}
@@ -2694,7 +2697,7 @@ Menu = {}
         ports = null
         pub = router.public_ip
         if not package.Netmap.hasIndex(pub) then
-            print "This is new! I'll take notes...".color("#f5a8b8")
+            print("This is new! I'll take notes...".color("#f5a8b8"))
             net = new Network
             net.devices = {}
             rtr = new Device
@@ -2704,7 +2707,7 @@ Menu = {}
             net.devices[router.local_ip] = rtr
             package.Netmap[pub] = net
         else
-            print "We've been here before.".color("#f5a8b8")
+            print("We've been here before.".color("#f5a8b8"))
         end if
         if not isLanIp then
             ports = router.used_ports
@@ -2729,11 +2732,11 @@ Menu = {}
                 dev = new Device
                 dev.libs = {}
                 dev.type = devtype
-                print "New " + devtype + "! Saving info...".color("#5bcff9")
+                print("New " + devtype + "! Saving info...".color("#5bcff9"))
                 dev.ports = {}
                 package.Netmap[pub].devices[lan] = dev
             else
-                print "I already know this device.".color("#5bcff9")
+                print("I already know this device.".color("#5bcff9"))
             end if
             if service.is_match("unknown") then continue
             package.Netmap[pub].devices[lan].ports[port.port_number] = port
@@ -2867,26 +2870,26 @@ Menu = {}
             aptclient.update
             if aptclient.search("metaxploit.so").is_match("not found") then exit("That is not a repo! Please delete /etc/apt/sources.txt and try again!".color(__errC))
         end if
-        print "Updating Metaxploit...".color("blue")
+        print("Updating Metaxploit...".color("blue"))
         aptclient.install("metaxploit.so", __AppPath)
         if not hc.File(__AppPath + "/crypto.so") then self.moveTo("crypto.so")
         if not hc.File(__AppPath + "/crypto.so") then
-            print "Updating Crypto...".color("yellow")
+            print("Updating Crypto...".color("yellow"))
             aptclient.install("crypto.so", __AppPath)
         end if
         if not hc.File(__AppPath + "/librshell.so") then
-            print "Updating Rshell...".color("purple")
+            print("Updating Rshell...".color("purple"))
             aptclient.install("librshell.so", __AppPath)
         end if
         if not hc.File(__AppPath + "/libssh.so") then
-            print "Updating SSH...".color(__errC)
+            print("Updating SSH...".color(__errC))
             aptclient.install("libssh.so", __AppPath)
         end if
         if not hc.File(__AppPath + "/libtrafficnet.so") then
-            print "Updating TrafficNet...".color("orange")
+            print("Updating TrafficNet...".color("orange"))
             aptclient.install("libtrafficnet.so", __AppPath)
         end if
-        print "Libs up to date!".color(__retC)
+        print("Libs up to date!".color(__retC))
         end function
     Menu.incMx = function
         loc = __AppPath

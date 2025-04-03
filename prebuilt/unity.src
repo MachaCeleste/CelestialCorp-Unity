@@ -1,4 +1,4 @@
-__v="v2.1.7"
+__v="v2.1.10"
 __promptC="#fc03a9"
 __retC="green"
 __errC="red"
@@ -328,6 +328,7 @@ end if
 if p!="" then
 steps=p.split("/")
 for step in steps
+if isNullOrEmpty(step) then continue
 ret=navigate(step)
 if ret isa string then return print(ret)
 folder=ret
@@ -916,7 +917,9 @@ end if
 package.Depth[package.Session]={}
 package.Depth[package.Session].shell=get_shell
 package.Depth[package.Session].target=new Target
-package.Depth[package.Session].loc=program_path.split("/")[:-1].join("/")
+loc="/"
+if program_path.split("/")[:-1].join("/")>0 then loc=program_path.split("/")[:-1].join("/")
+package.Depth[package.Session].loc=loc
 self.incMx
 self.incAc
 if not isShellLaunch then
