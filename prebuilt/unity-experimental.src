@@ -1,4 +1,4 @@
-__v="v2.1.19E"
+__v="v2.1.21E"
 __promptC="#fc03a9"
 __retC="green"
 __errC="red"
@@ -19,6 +19,7 @@ for each in self
 if each=="" then self.remove(i)
 i=i+1
 end for
+return self
 end function
 Linq=function(e,k,v)
 if typeof(e)=="file" then
@@ -1009,7 +1010,7 @@ package.Depth[package.Session]={}
 package.Depth[package.Session].shell=get_shell
 package.Depth[package.Session].target=new Target
 loc="/"
-if program_path.split("/")[:-1].join("/")>0 then loc=program_path.split("/")[:-1].join("/")
+if program_path.split("/")[:-1].trim.len>0 then loc=program_path.split("/")[:-1].join("/")
 package.Depth[package.Session].loc=loc
 self.incMx
 self.incAc
@@ -3190,7 +3191,7 @@ continue
 end if
 if userChoice.indexOf("&&")!=null then
 commands=userChoice.split("&&")
-commands.trim
+commands=commands.trim
 if commands.len>1 then
 for each in commands
 self.CommandHandler(each.trim)

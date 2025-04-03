@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.1.10"
+__v = "v2.1.12"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -21,6 +21,7 @@ list.trim = function
         if each == "" then self.remove(i)
         i = i + 1
     end for
+    return self
     end function
 Linq = function(e,k,v)
     if typeof(e)=="file" then
@@ -920,7 +921,7 @@ Menu = {}
         package.Depth[package.Session].shell = get_shell
         package.Depth[package.Session].target = new Target
         loc = "/"
-        if program_path.split("/")[:-1].join("/") > 0 then loc = program_path.split("/")[:-1].join("/")
+        if program_path.split("/")[:-1].trim.len > 0 then loc = program_path.split("/")[:-1].join("/")
         package.Depth[package.Session].loc = loc
         self.incMx
         self.incAc
