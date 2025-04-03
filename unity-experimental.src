@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.1.21E"
+__v = "v2.1.22E"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -2753,8 +2753,8 @@ Menu = {}
         end for
         end function
     Menu.ClearGco = function
-        for each in package
-            remove(package, each.key)
+        for each in package + {}
+            package.remove(each.key)
         end for
         end function
     Menu.RestoreGco = function
@@ -2959,23 +2959,23 @@ Menu = {}
             aptclient.update
             if aptclient.search("metaxploit.so").is_match("not found") then exit("That is not a repo! Please delete /etc/apt/sources.txt and try again!".color(__errC))
         end if
-        print("Updating Metaxploit...".color("blue"))
+        print("Updating Metaxploit...".color("#cb41d2")+"\n")
         aptclient.install("metaxploit.so", __AppPath)
         if not hc.File(__AppPath + "/crypto.so") then self.moveTo("crypto.so")
         if not hc.File(__AppPath + "/crypto.so") then
-            print("Updating Crypto...".color("yellow"))
+            print("Updating Crypto...".color("yellow")+"\n")
             aptclient.install("crypto.so", __AppPath)
         end if
         if not hc.File(__AppPath + "/librshell.so") then
-            print("Updating Rshell...".color("purple"))
+            print("Updating Rshell...".color("purple")+"\n")
             aptclient.install("librshell.so", __AppPath)
         end if
         if not hc.File(__AppPath + "/libssh.so") then
-            print("Updating SSH...".color(__errC))
+            print("Updating SSH...".color("red")+"\n")
             aptclient.install("libssh.so", __AppPath)
         end if
         if not hc.File(__AppPath + "/libtrafficnet.so") then
-            print("Updating TrafficNet...".color("orange"))
+            print("Updating TrafficNet...".color("orange")+"\n")
             aptclient.install("libtrafficnet.so", __AppPath)
         end if
         print("Libs up to date!".color(__retC))

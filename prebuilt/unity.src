@@ -1,4 +1,4 @@
-__v="v2.1.12"
+__v="v2.1.13"
 __promptC="#fc03a9"
 __retC="green"
 __errC="red"
@@ -2663,8 +2663,8 @@ self.gco[each.key]=each.value
 end for
 end function
 Menu.ClearGco=function
-for each in package
-remove(package,each.key)
+for each in package+{}
+package.remove(each.key)
 end for
 end function
 Menu.RestoreGco=function
@@ -3102,7 +3102,7 @@ continue
 end if
 if userChoice.indexOf("&&")!=null then
 commands=userChoice.split("&&")
-commands.trim
+commands=commands.trim
 if commands.len>1 then
 for each in commands
 self.CommandHandler(each.trim)
