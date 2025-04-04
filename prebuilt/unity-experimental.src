@@ -1,4 +1,4 @@
-__v="v2.1.22E"
+__v="v2.1.23E"
 __promptC="#fc03a9"
 __retC="green"
 __errC="red"
@@ -135,7 +135,7 @@ Random.MaxValue=2147483647
 Random.MinValue=-2147483648
 Random._seedArray=[0]*56
 Random._inext=0
-Random.inextp=0
+Random._inextp=0
 Random.seed=null
 Random.init=function(seed)
 if not seed then seed=round((rnd*(self.MaxValue-self.MinValue))+self.MinValue)
@@ -190,8 +190,8 @@ num3=self._seedArray[num]-self._seedArray[num2]
 if num3==2147483647 then num3=num3-1
 if num3<0 then num3=num3+self.MaxValue
 self._seedArray[num]=num3
-self.inext=num
-self.inextp=num2
+self._inext=num
+self._inextp=num2
 return num3
 end function
 Random.getlongsample=function
