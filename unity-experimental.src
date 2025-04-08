@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.1.34E"
+__v = "v2.1.35E"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -201,13 +201,10 @@ Random = {}
         if self.intsample % 2 == 0 then num = -num
         return (num + 2147483646.0) / 4294967293.0
         end function
-Guid = function(seed = null)
-    getRandomHex = function(r)
-        hexChars = "0123456789abcdef"
-        return hexChars[floor(r.Next(hexChars.len))]
-        end function
+Guid = function
+    hexChars = "0123456789abcdef"
     random = new Random
-    random.init(seed)
+    random.init
     guidFormat = [8,4,4,4,12]
     output = ""
     i = 0
@@ -215,7 +212,9 @@ Guid = function(seed = null)
         if i > 0 then output = output + "-"
         n = 0
         while n < place
-            output = output + getRandomHex(random)
+            v = floor(random.Next(hexChars.len, 0))
+            if not range(0, 15).indexOf(v) then continue
+            output = output + hexChars[v]
             n = n + 1
         end while
         i = i + 1

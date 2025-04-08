@@ -1,4 +1,4 @@
-__v="v2.1.34E"
+__v="v2.1.35E"
 __promptC="#fc03a9"
 __retC="green"
 __errC="red"
@@ -199,13 +199,10 @@ num=self.intsample
 if self.intsample%2==0 then num=-num
 return (num+2147483646)/4294967293
 end function
-Guid=function(seed=null)
-getRandomHex=function(r)
+Guid=function
 hexChars="0123456789abcdef"
-return hexChars[floor(r.Next(hexChars.len))]
-end function
 random=new Random
-random.init(seed)
+random.init
 guidFormat=[8,4,4,4,12]
 output=""
 i=0
@@ -213,7 +210,9 @@ for place in guidFormat
 if i>0 then output=output+"-"
 n=0
 while n<place
-output=output+getRandomHex(random)
+v=floor(random.Next(hexChars.len,0))
+if not range(0,15).indexOf(v) then continue
+output=output+hexChars[v]
 n=n+1
 end while
 i=i+1
