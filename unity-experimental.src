@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.1.33E"
+__v = "v2.1.34E"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -204,7 +204,7 @@ Random = {}
 Guid = function(seed = null)
     getRandomHex = function(r)
         hexChars = "0123456789abcdef"
-        return hexChars[r.Next(hexChars.len)]
+        return hexChars[floor(r.Next(hexChars.len))]
         end function
     random = new Random
     random.init(seed)

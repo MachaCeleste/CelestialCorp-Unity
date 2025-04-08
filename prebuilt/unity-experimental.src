@@ -1,4 +1,4 @@
-__v="v2.1.33E"
+__v="v2.1.34E"
 __promptC="#fc03a9"
 __retC="green"
 __errC="red"
@@ -202,7 +202,7 @@ end function
 Guid=function(seed=null)
 getRandomHex=function(r)
 hexChars="0123456789abcdef"
-return hexChars[r.Next(hexChars.len)]
+return hexChars[floor(r.Next(hexChars.len))]
 end function
 random=new Random
 random.init(seed)
