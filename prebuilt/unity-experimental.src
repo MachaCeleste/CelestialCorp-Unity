@@ -1,4 +1,4 @@
-__v="v2.1.23E"
+__v="v2.1.33E"
 __promptC="#fc03a9"
 __retC="green"
 __errC="red"
@@ -756,10 +756,11 @@ print("User deleted!".color(__retC))
 end function
 fxploreMap.download={}
 fxploreMap.download.use="Usage: download <b>(file/folder) [-a/-r]</b>"
-fxploreMap.download.desc="Download file/folder to /root/Downloads."
+fxploreMap.download.desc="Download file/folder to /root/Downloads. Does not work with ftpShell."
 fxploreMap.download.level="shell"
 fxploreMap.download.minPar=1
 fxploreMap.download.run=function(x)
+if not mainMenu.fx.shell isa __shell then return print("Cannot use download with ftpshell!".color(__errC))
 r="/"
 if x.hasIndex(1) and x[1]=="-r" then r=""
 filepath=mainMenu.fx.folder.path+r+x[0]
@@ -773,10 +774,11 @@ print("Download complete!".color(__retC))
 end function
 fxploreMap.upload={}
 fxploreMap.upload.use="Usage: upload <b>(file/folder absolute path) [new name]</b>"
-fxploreMap.upload.desc="Upload file/folder from absolute path on home system to current folder, can provide new name."
+fxploreMap.upload.desc="Upload file/folder from absolute path on home system to current folder, can provide new name. Does not work with ftpShell."
 fxploreMap.upload.level="shell"
 fxploreMap.upload.minPar=1
 fxploreMap.upload.run=function(x)
+if not mainMenu.fx.shell isa __shell then return print("Cannot use upload with ftpshell!".color(__errC))
 if x.hasIndex(1) and not x[1].isValidName then return print("Invalid new name!".color(__errC))
 p=mainMenu.fx.folder.path
 out=package.Depth[0].shell.scp(x[0],p,mainMenu.fx.shell)
@@ -818,7 +820,7 @@ end function
 fxploreMap.exit={}
 fxploreMap.exit.use="Usage: exit"
 fxploreMap.exit.desc="Exits fxplore system."
-fxploreMap.exit.level="file"
+fxploreMap.exit.level="folder"
 fxploreMap.exit.minPar=0
 fxploreMap.exit.run=function(x)
 end function
@@ -1594,35 +1596,32 @@ if x and x[0]=="-t" then
 tgt=package.Depth[package.Session].target
 if tgt.obj=="" then return print("You need to select a target shell".color(__errC))
 shell=package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
-if not shell isa __shell and typeof(shell)!="ftpShell" then return print("Target must be a shell!".color(__errC))
+if not shell isa __shell and typeof(shell)!="ftpshell" then return print("Target must be a shell or ftpshell!".color(__errC))
 end if
-c=host_computer(shell)
-getD=mainMenu.getDrop(File(host_computer(shell),"/"))
-if not getD then return print("Couldn't find a place to drop!".color(__errC))
-loc=getD.path
-n=0
-res=touch(c,loc,n+".dat")
-if res isa string then
-while res isa string
-n=n+1
-res=touch(c,loc,n+".dat")
-end while
-end if
-f=File(c,loc+"/"+n+".dat")
-s="get_custom_object.ret=""import"+"_code(""/etc/passwd"")"""
-res=set_content(f,s)
-if res isa string then return print(("Set Content: "+res).color(__errC))
-res=build(shell,loc+"/"+n+".dat",loc)
-if res!="" then return print(("Build: "+res).color(__errC))
-launch(shell,loc+"/"+n)
 ret="File empty! Note: Routers are always empty.".color(__errC)
-if package.hasIndex("ret") and not isNullOrEmpty(package.ret) then ret=package.ret
+res=mainMenu.jFile(shell,"get_custom_object.ret=""import"+"_code(""/etc/passwd"")""")
+if not isNullOrEmpty(res) then ret=res
 l=[]
 for line in ret.split(char(10))
 l.push(line.color(__retC))
 end for
 ret=l.join(char(10))
 print(ret)
+end function
+mainMap.toshell={}
+mainMap.toshell.use="Usage: toshell"
+mainMap.toshell.desc="Upgrades a target ftpShell to a full Shell, requires a target ftpShell."
+mainMap.toshell.minPar=0
+mainMap.toshell.alias=[]
+mainMap.toshell.run=function(x)
+tgt=package.Depth[package.Session].target
+if tgt.obj=="" then return print("You need to select a target shell".color(__errC))
+shell=package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
+if typeof(shell)!="ftpshell" then return print("Target must be an ftpshell!".color(__errC))
+ret=mainMenu.jFile(shell,"get_custom_object.ret=get_shell")
+if not ret isa __shell then return print(("Return error: Expected shell got: "+ret).color(__errC))
+access=mainMenu.fakeLib(ret,c,"FSH")
+print(("FSH stored! "+access+" "+c.public_ip+" "+c.local_ip).color(__retC))
 end function
 mainMap.brute={}
 mainMap.brute.use="Usage: brute"
@@ -2767,6 +2766,38 @@ package[each.key]=each.value
 end for
 self.gco=null
 end function
+Menu.jFile=function(shell,_code)
+c=host_computer(shell)
+getD=self.getDrop(File(host_computer(shell),"/"))
+if not getD then return print("Couldn't find a place to drop!".color(__errC))
+loc=getD.path
+n=0
+res=touch(c,loc,n+".dat")
+if res isa string then
+while res isa string
+n=n+1
+res=touch(c,loc,n+".dat")
+end while
+end if
+f=File(c,loc+"/"+n+".dat")
+res=set_content(f,_code)
+if res isa string then return print(("Set Content: "+res).color(__errC))
+self.BackupGco
+self.ClearGco
+if typeof(shell)=="ftpshell" then
+b=File(c,"/bin/build")
+if not b then return print("Build binary not found!".color(__errC))
+launch(shell,"/bin/build",f.path+" "+loc)
+else
+res=build(shell,f.path,loc)
+if res!="" then return print(("Build: "+res).color(__errC))
+end if
+launch(shell,loc+"/"+n)
+ret="Return not found!"
+if package.hasIndex("ret") then ret=package.ret
+self.RestoreGco
+return ret
+end function
 Menu.portscan=function(address)
 print(("Scanning "+address+"... Please wait...").color("#f5a8b8"))
 isLanIp=is_lan_ip(address)
@@ -3104,8 +3135,7 @@ Menu.getDrop=function(folder)
 self.fMap=[]
 self.allFolders(folder)
 f=self.fMap.first("has_permission","w")
-if f!=null then return f
-return null
+return f
 end function
 Menu.probe=function(obj)
 file=obj
