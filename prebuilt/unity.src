@@ -1,4 +1,4 @@
-__v="v2.1.32"
+__v="v2.1.33"
 __promptC="#fc03a9"
 __retC="green"
 __errC="red"
@@ -604,7 +604,7 @@ fxploreMap.mkdir.minPar=1
 fxploreMap.mkdir.run=function(x)
 if not x[0].isValidName then return print("Invalid name!".color(__errC))
 path=mainMenu.fx.folder.path
-if x[1]!="" then path=x[1]
+if x.hasIndex(1) and x[1]!="" then path=x[1]
 if not path.isValidPath then return print("Invalid path!".color(__errC))
 out=mainMenu.fx.computer.create_folder(path,x[0])
 if out and out!=1 then return print(out.color(__errC))
