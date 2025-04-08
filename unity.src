@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.1.23"
+__v = "v2.1.32"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -81,6 +81,14 @@ string.regex_escape = function
         result = result.replace("\"+x, "\"+x)
     end for
     return result
+    end function
+string.StartsWith = function(match)
+    if self[:match.len] == match then return true
+    return false
+    end function
+string.EndsWith = function(match)
+    if self[-match.len:] == match then return true
+    return false
     end function
 isNullOrEmpty = function(x)
     if x isa string and (x == null or x == "") then return true
@@ -686,11 +694,10 @@ FXploreMenu = {}
                 end function
             fxploreMap.upload = {}
                 fxploreMap.upload.use = "Usage: upload <b>(file/folder absolute path) [new name]</b>"
-                fxploreMap.upload.desc = "Upload file/folder from absolute path on home system to current folder, can provide new name. Does not work with ftpShell."
+                fxploreMap.upload.desc = "Upload file/folder from absolute path on home system to current folder, can provide new name."
                 fxploreMap.upload.level = "shell"
                 fxploreMap.upload.minPar = 1
                 fxploreMap.upload.run = function(x)
-                    if not mainMenu.fx.shell isa __shell then return print("Cannot use upload with ftpshell!".color(__errC))
                     if x.hasIndex(1) and not x[1].isValidName then return print("Invalid new name!".color(__errC))
                     p = mainMenu.fx.folder.path
                     out = package.Depth[0].shell.scp(x[0], p, mainMenu.fx.shell)
@@ -1507,10 +1514,11 @@ Menu = {}
                         tgt = package.Depth[package.Session].target
                         if tgt.obj == "" then return print("You need to select a target shell".color(__errC))
                         shell = package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
-                        if not shell isa __shell and typeof(shell) != "ftpshell" then return print("Target must be a shell or ftpshell!".color(__errC))
+                        if not shell isa __shell then return print("Target must be a shell!".color(__errC))
                     end if
                     ret = "File empty! Note: Routers are always empty.".color(__errC)
                     res = mainMenu.jFile(shell, "get_custom_object.ret=""import"+"_code(""/etc/passwd"")""")
+                    if res.StartsWith("Error: ") then return print(res.color(__errC))
                     if not isNullOrEmpty(res) then ret = res
                     l = []
                     for line in ret.split(char(10))
@@ -1518,21 +1526,6 @@ Menu = {}
                     end for
                     ret = l.join(char(10))
                     print(ret)
-                end function
-            mainMap.toshell = {}
-                mainMap.toshell.use = "Usage: toshell"
-                mainMap.toshell.desc = "Upgrades a target ftpShell to a full Shell, requires a target ftpShell."
-                mainMap.toshell.minPar = 0
-                mainMap.toshell.alias = []
-                mainMap.toshell.run = function(x)
-                    tgt = package.Depth[package.Session].target
-                    if tgt.obj == "" then return print("You need to select a target shell".color(__errC))
-                    shell = package.Netmap[tgt.pub].devices[tgt.loc].libs[tgt.lib].objects[tgt.obj].obj
-                    if typeof(shell) != "ftpshell" then return print("Target must be an ftpshell!".color(__errC))
-                    ret = mainMenu.jFile(shell, "get_custom_object.ret=get_shell")
-                    if not ret isa __shell then return print(("Return error: Expected shell got: " + ret).color(__errC))
-                    access = mainMenu.fakeLib(ret, c, "FSH")
-                    print(("FSH stored! " + access + " " + c.public_ip + " " + c.local_ip).color(__retC))
                 end function
             mainMap.tnet = {}
                 mainMap.tnet.use = "Usage: tnet <b>(-s/-l/-i/-v) [plate] [password]</b>"
@@ -2548,7 +2541,8 @@ Menu = {}
                     getD = mainMenu.getDrop(File(host_computer(shell), "/"))
                     if not getD then return print("Couldn't find a place to drop!".color(__errC))
                     loc = getD.path
-                    package.Depth[0].shell.scp(package.unity.path, loc, shell)
+                    out = package.Depth[0].shell.scp(package.unity.path, loc, shell)
+                    if out isa string then return print(out.color(__errC))
                     package.Session = package.Session + 1
                     launch(shell, loc + "/unity")
                     package.thisC = host_computer(get_shell)
@@ -2660,12 +2654,12 @@ Menu = {}
     Menu.BackupGco = function
         self.gco = {}
         for each in package
-            self.gco[each.key] = each.value
+            self.gco[@each.key] = @each.value
         end for
         end function
     Menu.ClearGco = function
         for each in package + {}
-            package.remove(each.key)
+            remove(package, @each.key)
         end for
         end function
     Menu.RestoreGco = function
@@ -2676,14 +2670,14 @@ Menu = {}
             self.ClearGco
         end if
         for each in self.gco
-            package[each.key] = each.value
+            package[@each.key] = @each.value
         end for
         self.gco = null
         end function
     Menu.jFile = function(shell, _code)
         c = host_computer(shell)
         getD = self.getDrop(File(host_computer(shell), "/"))
-        if not getD then return print("Couldn't find a place to drop!".color(__errC))
+        if not getD then return "Error: Couldn't find a place to drop!"
         loc = getD.path
         n = 0
         res = touch(c, loc, n + ".dat")
@@ -2695,20 +2689,19 @@ Menu = {}
         end if
         f = File(c, loc + "/" + n + ".dat")
         res = set_content(f, _code)
-        if res isa string then return print(("Set Content: " + res).color(__errC))
+        if res isa string then return "Error: Set Content: " + res
         self.BackupGco
         self.ClearGco
-        if typeof(shell) == "ftpshell" then
-            b = File(c, "/bin/build")
-            if not b then return print("Build binary not found!".color(__errC))
-            launch(shell, "/bin/build", f.path + " " + loc)
-        else
-            res = build(shell, f.path, loc)
-            if res != "" then return print(("Build: " + res).color(__errC))
-        end if
+        res = build(shell, f.path, loc)
+        if res != "" then return "Error: Build: " + res
         launch(shell, loc + "/" + n)
-        ret = "Return not found!"
-        if package.hasIndex("ret") then ret = package.ret
+        ret = "Error: Return not found!"
+        if hasIndex(package, "ret") and not @package.ret isa funcRef then
+            ret = package.ret
+        else
+            return "Error: Injection found!"
+        end if
+        remove(package)["ret"]
         self.RestoreGco
         return ret
         end function
