@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.1.48E"
+__v = "v2.1.49E"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -2769,7 +2769,7 @@ Menu = {}
         end for
         end function
     Menu.RestoreGco = function
-        if package.len != 0 then
+        if len(package) != 0 then
             red = "<color=red>"
             print(red + "Injection found!")
             print(red + indexes(package).join(char(10) + red))
