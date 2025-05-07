@@ -1,4 +1,4 @@
-__v="v2.1.49E"
+__v="v2.1.50E"
 __promptC="#fc03a9"
 __retC="green"
 __errC="red"
@@ -1359,7 +1359,7 @@ end for
 print(format_columns(info))
 i=user_input("Enter wifi card: ",0,1).to_int
 if i isa string or (i-1)<0 then return print("Invalid selection!".color(__errC))
-dev=devs[i-1].split(" ")[0]
+dev=devices[i-1].split(" ")[0]
 wlans=wifi_networks(c,dev)
 if wlans==null then return print("No networks found or there was an error".color(__errC))
 inf="SEL BSSID PWR ESSID"
