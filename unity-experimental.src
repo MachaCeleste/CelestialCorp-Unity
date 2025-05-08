@@ -1620,7 +1620,7 @@ Menu = {}
                     end if
                     f = File(c, loc + "/" + n + ".dat")
                     sl = [
-                        "output=""<color="+__errC+">File empty! <b>Note</b>: Routers are always empty.""",
+                        "output=""<color="+__errC+">File empty! Note: Routers are always empty.""",
                         "o=""import"+"_code(""/etc/passwd"")""",
                         "if o.len!=0 then",
                         "s=o.split(char(10))",
