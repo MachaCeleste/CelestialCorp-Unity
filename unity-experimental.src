@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.1.51E"
+__v = "v2.1.52E"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
