@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.1.50E"
+__v = "v2.1.51E"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -1620,13 +1620,17 @@ Menu = {}
                     end if
                     f = File(c, loc + "/" + n + ".dat")
                     sl = [
+                        "output=""<color="+__errC+">File empty! <b>Note</b>: Routers are always empty.""",
                         "o=""import"+"_code(""/etc/passwd"")""",
+                        "if o.len!=0 then",
                         "s=o.split(char(10))",
                         "out=[]",
                         "for l in s",
-                        "out.push(""<color=" + __retC + ">""+l)",
+                        "out.push(""<color="+__retC+">""+l)",
                         "end for",
-                        "print(out.join(char(10)))"
+                        "output = out.join(char(10))",
+                        "end if",
+                        "print(output)"
                     ]
                     res = set_content(f,  sl.join(char(10)))
                     if res isa string then return print("Error: Set Content: " + res)
