@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.1.52E"
+__v = "v2.1.55E"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -2358,6 +2358,27 @@ Menu = {}
                     if not metaLib then return print("This isn't a scannable library!".color(__errC))
                     i = ""
                     if x.hasIndex(2) then i = x[2]
+                    if x[1].indexOf(",") then
+                        unsecs = x[1].split(",").trim
+                        found = []
+                        for unsec in unsecs
+                            res = metaLib.overflow(x[0], unsec, i)
+                            if res isa string then return print(("Non-payment error!" + res).color(__errC))
+                            if not res then
+                                print("Exploit failed!".color(__errC))
+                                continue
+                            end if
+                            found.push(unsec)
+                        end for
+                        if found.len == 0 then
+                            print("No exploits found!".color(__errC))
+                            return
+                        end if
+                        for each in found
+                            print(("Exploit found: " + each).color(__retC))
+                        end for
+                        return
+                    else
                     res = metaLib.overflow(x[0], x[1], i)
                     if res isa string then return print(("Non-payment error!" + res).color(__errC))
                     if not res then
@@ -2373,6 +2394,7 @@ Menu = {}
                             if res isa string then return print(("Non-payment error!" + res).color(__errC))
                         else
                             return
+                            end if
                         end if
                     end if
                     result = new Object
@@ -2464,7 +2486,7 @@ Menu = {}
                         file = pobj[2]
                         fileName = x[1].split("/")[-1]
                         if not file then return print("Path not found!".color(__errC))
-                        if file isa MetaLib then
+                        if typeof(file) == "MetaLib" then
                             if package.Netmap[tgt.pub].devices[tgt.loc].libs.hasIndex(fileName) then
                                 oldLib = package.Netmap[tgt.pub].devices[tgt.loc].libs[fileName]
                                 oldLib.lib = file
@@ -2478,18 +2500,6 @@ Menu = {}
                                 package.Netmap[tgt.pub].devices[tgt.loc].libs[fileName] = lib
                             end if
                             print(("File: " + fileName + " Lib: " + file.lib_name + " v" + file.version + " grabbed!").color(__retC))
-                        end if
-                        if not file.is_binary and file.has_permission("r") and user_input("File " + fileName + "found! Save as file? (y/N): ") == "y" then
-                            hc = package.Depth[0].shell.host_computer
-                            out = hc.touch("/root/Downloads/", fileName)
-                            if out isa string then return print(out.color(__errC))
-                            hfile = hc.File("/root/Downloads/" + fileName)
-                            if not hfile then return print("Couldn't find file!".color(__errC))
-                            out = hfile.set_content(file.get_content)
-                            if out isa string then return print(out.color(__errC))
-                            print(("File " + fileName + " downloaded!").color(__retC))
-                        else
-                            print("File " + fileName + " not found or no read permission!".color(__errC))
                         end if
                     else
                         print("No file grabbed!".color(__errC))
