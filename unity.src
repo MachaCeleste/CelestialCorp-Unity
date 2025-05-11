@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.1.43"
+__v = "v2.1.44"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -2262,6 +2262,7 @@ Menu = {}
                         unsecs = x[1].split(",").trim
                         found = []
                         for unsec in unsecs
+                            print("Testing: " + unsec)
                             res = metaLib.overflow(x[0], unsec, i)
                             if res isa string then return print(("Non-payment error!" + res).color(__errC))
                             if not res then
