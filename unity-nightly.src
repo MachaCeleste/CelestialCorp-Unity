@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.2.14NGT"
+__v = "v2.2.16NGT"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -822,7 +822,7 @@ FXploreMenu = {}
                 isb = " <b>bin</b>".color("purple")
             end if
             ise = ""
-            if self.crypto != null and self.crypto.is_encrypted(each.path) then ise = " <b>enc</b>".color("orange")
+            if self.crypto and not each.is_folder and self.crypto.is_encrypted(each.path) then ise = " <b>enc</b>".color("orange")
             iss = ""
             if each.is_symlink and not each.path.is_match(".Trash") then iss = (" -> " + each.path(1))
             info = info + char(10) + each.permissions + " " + each.owner + " " + each.group + " " + each.size + " " + isf + each.name + iss + isb + ise
@@ -1660,8 +1660,10 @@ Menu = {}
                                 end while
                             end if
                             f = File(rc, drop + "/" + n + ".dat")
+                            inline = drop
+                            if drop == "/" then inline = ""
                             sl = [
-                                "mx = include_lib("""+drop+"metaxploit.so"")",
+                                "mx = include_lib("""+inline+"/metaxploit.so"")",
                                 "if not mx then exit(""<color="+__errC+">Couldn't find metaxploit.so"")",
                                 "ns = mx.net_use(""" + address + """, " + port + ")",
                                 "ns.flood_connection"
@@ -1672,8 +1674,8 @@ Menu = {}
                             if res != "" then return print("Error: Build: " + res)
                             mainMenu.BackupGco
                             mainMenu.ClearGco
-                            if term then launch(shell, "/usr/bin/Terminal.exe", drop + "/" + n)
-                            if not term then launch(shell, drop + "/" + "Terminal.exe", drop + "/" + n)
+                            if term then launch(shell, "/usr/bin/Terminal.exe", inline + "/" + n)
+                            if not term then launch(shell, inline + "/Terminal.exe", inline + "/" + n)
                             mainMenu.RestoreGco
                             wait(2)
                         end for
