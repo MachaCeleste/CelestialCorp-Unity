@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.2.0NGT"
+__v = "v2.2.9NGT"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -287,6 +287,7 @@ FXploreMenu = {}
     FXploreMenu.shell = null
     FXploreMenu.computer = null
     FXploreMenu.access = null
+    FXploreMenu.crypto = null
     FXploreMenu.init = function(obj)
         fxploreMap = {}
             fxploreMap.cat = {}
@@ -677,6 +678,34 @@ FXploreMenu = {}
                     if out isa string then return print(out.color(__errC))
                     print("User deleted!".color(__retC))
                 end function
+            fxploreMap.encrypt = {}
+                fxploreMap.encrypt.use = "Usage: encrypt <b>(path)</b>"
+                fxploreMap.encrypt.desc = "Encrypt a file behind password based encryption"
+                fxploreMap.encrypt.level = "shell"
+                fxploreMap.encrypt.minPar = 1
+                fxploreMap.encrypt.run = function(x)
+                    file = mainMenu.fx.folder.get_files.first("name", x[0])
+                    if not file then return print("Couldn't find file of that name!".color(__errC))
+                    if not mainMenu.fx.crypto then return print("Couldn't find or move up crypto.so!".color(__errC))
+                    if mainMenu.fx.crypto.is_encrypted(x[0]) then return print("This file is already encrypted!".color(__errC))
+                    out = mainMenu.fx.crypto.encrypt(x[0], user_input("Please enter datacrypt password: ", 1))
+                    if out isa string then return print(out.color(__errC))
+                    print("File encrypted!".color(__retC))
+                end function
+            fxploreMap.decrypt = {}
+                fxploreMap.decrypt.use = "Usage: decrypt <b>(path)</b>"
+                fxploreMap.decrypt.desc = "Decrypt a file behind password based encryption"
+                fxploreMap.decrypt.level = "shell"
+                fxploreMap.decrypt.minPar = 1
+                fxploreMap.decrypt.run = function(x)
+                    file = mainMenu.fx.folder.get_files.first("name", x[0])
+                    if not file then return print("Couldn't find file of that name!".color(__errC))
+                    if not mainMenu.fx.crypto then return print("Couldn't find or move up crypto.so!".color(__errC))
+                    if not mainMenu.fx.crypto.is_encrypted(x[0]) then return print("This file is not encrypted!".color(__errC))
+                    out = mainMenu.fx.crypto.decrypt(x[0], user_input("Please enter datacrypt password: ", 1))
+                    if out isa string then return print(out.color(__errC))
+                    print("File decrypted!".color(__retC))
+                end function
             fxploreMap.download = {}
                 fxploreMap.download.use = "Usage: download <b>(file/folder) [-a/-r]</b>"
                 fxploreMap.download.desc = "Download file/folder to /root/Downloads. Does not work with ftpShell."
@@ -790,11 +819,35 @@ FXploreMenu = {}
             else if each.is_binary and not each.is_folder then
                 isb = " <b>bin</b>".color("purple")
             end if
+            ise = ""
+            if self.crypto != null and self.crypto.is_encrypted(each.path) then ise = " <b>enc</b>".color("orange")
             iss = ""
             if each.is_symlink and not each.path.is_match(".Trash") then iss = (" -> " + each.path(1))
-            info = info + char(10) + each.permissions + " " + each.owner + " " + each.group + " " + each.size + " " + isf + each.name + iss + isb
+            info = info + char(10) + each.permissions + " " + each.owner + " " + each.group + " " + each.size + " " + isf + each.name + iss + isb + ise
         end for
         print(format_columns(info))
+        end function
+    FXploreMenu.getCrypto = function
+            crypto = include_lib("/lib/crypto.so")
+            if not crypto then
+                crf = self.find("crypto.so")
+                if crf != null then
+                    for i in range(0, crf.len)
+                        crypto = include_lib(crf[i].path)
+                        if typeof(crypto) == "cryptoLib" then break
+                    end for
+                else
+                    if self.shell != null then
+                        getD = mainMenu.getDrop(File(self.computer, "/"))
+                        if not getD then return print("Fxplore: Move Crypto: Couldn't find a place to drop!")
+                        drop = getD.path
+                        out = package.Depth[0].shell.scp(package.CrF.path, drop, self.shell)
+                        if out isa string then return print(out.color(__errC))
+                        crypto = include_lib(drop + "crypto.so")
+                    end if    
+                end if
+            end if
+            return crypto
         end function
     FXploreMenu.help = function
         for each in self.cmd.indexes
@@ -815,6 +868,7 @@ FXploreMenu = {}
         if self.shell then
             x = "shell"
             n = self.computer.get_name
+            self.crypto = self.getCrypto
         end if
         print(("Launching FXplore at <b>" + x + "</b> level...").color("#5bcff9"))
         while true
@@ -889,6 +943,7 @@ Menu = {}
             package.MxF = package.thisC.File(__AppPath + "/metaxploit.so")
             package.CrF = package.thisC.File(__AppPath + "/crypto.so")
             package.AcF = package.thisC.File(__AppPath + "/aptclient.so")
+            package.Term = package.thisC.File("/usr/bin/Terminal.exe")
             package.librshell = package.thisC.File(__AppPath + "/librshell.so")
             package.libssh = package.thisC.File(__AppPath + "/libssh.so")
             package.libtraffic = package.thisC.File(__AppPath + "/libtrafficnet.so")
@@ -1586,11 +1641,11 @@ Menu = {}
                         package.Seeds[loc] = seed
                         print(("Seed " + loc + " added!").color(__retC))
                     else if x[0] == "-u" then
-                        if not seeds.hasIndex(loc) then return print("Cannot remove seed, this system doesnt yet have one!".color(__errC))
+                        if not package.Seeds.hasIndex(loc) then return print("Cannot remove seed, this system doesnt yet have one!".color(__errC))
                         remove(package.Seeds, loc)
                         print(("Seed removed from " + loc + "!").color(__retC))
                     else if x[0] == "-l" then
-                        if package.Seeds.len < 3 then return print("You'll need 3 or more seeds!".color(__errC))
+                        if package.Seeds.len < 12 then print("If you are solo youll need 12 or more seeds for the weakest net!".color(__errC))
                         if not x.hasIndex(1) then return print("Please specify target web/ip address!".color(__errC))
                         address = x[1]
                         if not is_valid_ip(address) then address = nslookup(address)
@@ -1603,19 +1658,26 @@ Menu = {}
                             drop = seed.drop
                             rc = shell.host_computer
                             n = 0
-                            res = touch(c, drop, n + ".dat")
-                            if File(rc, "/usr/bin/Terminal.exe") == null then return print("Error: Couldn't find Terminal.exe!".color(__errC))
+                            res = touch(rc, drop, n + ".dat")
+                            term = true
+                            if File(rc, "/usr/bin/Terminal.exe") == null then
+                                out = package.Depth[0].shell.scp(package.Term.path, drop, shell)
+                                if out isa string then return print(out.color(__errC))
+                                if File(rc, drop + "Terminal.exe") == null then return print("Error: Couldn't find Terminal.exe!".color(__errC))
+                                term = false
+                            end if
                             if res isa string then
                                 while res isa string
                                     n = n + 1
-                                    res = touch(c, drop, n + ".dat")
+                                    res = touch(rc, drop, n + ".dat")
                                 end while
                             end if
                             f = File(rc, drop + "/" + n + ".dat")
                             sl = [
                                 "mx = include_lib("""+drop+"metaxploit.so"")",
                                 "if not mx then exit(""<color="+__errC+">Couldn't find metaxploit.so"")",
-                                "ns = mx.net_use(""" + address + """, " + port + ")"
+                                "ns = mx.net_use(""" + address + """, " + port + ")",
+                                "ns.flood_connection"
                             ]
                             res = set_content(f, sl.join(char(10)))
                             if res isa string then return print("Error: Set Content: " + res)
@@ -1623,7 +1685,8 @@ Menu = {}
                             if res != "" then return print("Error: Build: " + res)
                             mainMenu.BackupGco
                             mainMenu.ClearGco
-                            launch(shell, "/usr/bin/Terminal.exe", drop + "/" + n)
+                            if term then launch(shell, "/usr/bin/Terminal.exe", drop + "/" + n)
+                            if not term then launch(shell, drop + "/" + "Terminal.exe", drop + "/" + n)
                             mainMenu.RestoreGco
                         end for
                         return
