@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.1.59E"
+__v = "v2.1.59NGT"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -152,6 +152,9 @@ User = {}
 RshellServer = {}
     RshellServer.Mx = null
     RshellServer.rshelld = null
+Seed = {}
+    Seed.shell = null
+    Seed.drop = null
 Tool = {}
     Tool.lib = null
     Tool.pubIp = ""
@@ -881,6 +884,7 @@ Menu = {}
             package.Session = 0
             package.Depth = {}
             package.Netmap = {}
+            package.Seeds = {}
             self.updateLibs
             package.MxF = package.thisC.File(__AppPath + "/metaxploit.so")
             package.CrF = package.thisC.File(__AppPath + "/crypto.so")
@@ -1560,6 +1564,71 @@ Menu = {}
                     brute = package.Depth[0].shell.host_computer.File(__CelCoPath + "/brute")
                     if not brute then return print("Brute not installed!".color(__errC))
                     package.Depth[0].shell.launch("/usr/bin/Terminal.exe", brute.path + "/brute")
+                end function
+            mainMap.nuke = {}
+                mainMap.nuke.use = "Usage: nuke <b>(-s/-u/-l (web/ip port))"
+                mainMap.nuke.desc = "Seed/Unseed an attack platform or Launch a DDoS attack against web/ip address."
+                mainMap.nuke.minPar = 1
+                mainMap.nuke.alias = []
+                mainMap.nuke.run = function(x)
+                    shell = package.Depth[package.Session].shell
+                    c = shell.host_computer
+                    loc = c.public_ip + ":" + c.local_ip
+                    if x[0] == "-s" then
+                        if package.Session == 0 and user_input("You are about to use your home computer as a seed for a nuke attack, are you wure you want to do this? (y/N):".color(__errC)).lower != "y" then return
+                        if (package.Seeds.len + 1 > 10) then return print("Cannot have more than 10 seeds at once!".color(__errC))
+                        getD = mainMenu.getDrop(File(c, "/"))
+                        if not getD then return print("Error: Couldn't find a place to drop!")
+                        drop = getD.path
+                        seed = new Seed
+                        seed.shell = shell
+                        seed.drop = drop
+                        package.Seeds[loc] = seed
+                        print(("Seed " + loc + " added!").color(__retC))
+                    else if x[0] == "-u" then
+                        if not seeds.hasIndex(loc) then return print("Cannot remove seed, this system doesnt yet have one!".color(__errC))
+                        remove(package.Seeds, loc)
+                        print(("Seed removed from " + loc + "!").color(__retC))
+                    else if x[0] == "-l" then
+                        if package.Seeds.len < 3 then return print("You'll need 3 or more seeds!".color(__errC))
+                        if not x.hasIndex(1) then return print("Please specify target web/ip address!".color(__errC))
+                        address = x[1]
+                        if not is_valid_ip(address) then address = nslookup(address)
+                        if not is_valid_ip(address) then return print("Invalid Web or IP address!".color(__errC))
+                        if not x.hasIndex(2) then return print("You must specify the port to obtain a net session on!".color(__errC))
+                        port = x[2].to_int
+                        if not port isa number then return print("Please specify a valid port!".color(__errC))
+                        for seed in package.Seeds.values
+                            shell = seed.shell
+                            drop = seed.drop
+                            rc = shell.host_computer
+                            n = 0
+                            res = touch(c, drop, n + ".dat")
+                            if File(rc, "/usr/bin/Terminal.exe") == null then return print("Error: Couldn't find Terminal.exe!".color(__errC))
+                            if res isa string then
+                                while res isa string
+                                    n = n + 1
+                                    res = touch(c, drop, n + ".dat")
+                                end while
+                            end if
+                            f = File(rc, drop + "/" + n + ".dat")
+                            sl = [
+                                "mx = include_lib("""+drop+"metaxploit.so"")",
+                                "if not mx then exit(""<color="+__errC+">Couldn't find metaxploit.so"")",
+                                "ns = mx.net_use(""" + address + """, " + port + ")"
+                            ]
+                            res = set_content(f, sl.join(char(10)))
+                            if res isa string then return print("Error: Set Content: " + res)
+                            res = build(shell, f.path, drop)
+                            if res != "" then return print("Error: Build: " + res)
+                            mainMenu.BackupGco
+                            mainMenu.ClearGco
+                            launch(shell, "/usr/bin/Terminal.exe", drop + "/" + n)
+                            mainMenu.RestoreGco
+                        end for
+                        return
+                    end if
+                    print(("You now have " + package.Seeds.len + " seeds!").color(__retC))
                 end function
             mainMap.tnet = {}
                 mainMap.tnet.use = "Usage: tnet <b>(-s/-l/-i/-v) [plate] [password]</b>"
@@ -3119,6 +3188,7 @@ Menu = {}
             end if
             target = "No Target!".color(__errC)
             if tgt.pub != "" then target = (tgt.pub + "-" + tgt.loc + "-" + tgt.lib + "-" + tgt.obj).color(__retC)
+            if package.Seeds.len > 0 then info = info + (" Seeds: " + package.Seeds.len).color(__useC)
             print(info)
             userChoice = user_input(("<size=80%>" + target + "</size>" + "<pos=0%><voffset=-1.2em>" + "[" + active_user + "@" + package.thisC.get_name + " " + package.Session + "] <color=" + __promptC +">"), 0, 0, 1).trim
             if userChoice == "" then continue
