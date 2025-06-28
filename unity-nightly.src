@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.2.9NGT"
+__v = "v2.2.13NGT"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -684,6 +684,7 @@ FXploreMenu = {}
                 fxploreMap.encrypt.level = "shell"
                 fxploreMap.encrypt.minPar = 1
                 fxploreMap.encrypt.run = function(x)
+                    if not mainMenu.fx.crypto then return print("Error: You must be relative to the target system to use this method!".color(__errC))
                     file = mainMenu.fx.folder.get_files.first("name", x[0])
                     if not file then return print("Couldn't find file of that name!".color(__errC))
                     if not mainMenu.fx.crypto then return print("Couldn't find or move up crypto.so!".color(__errC))
@@ -698,6 +699,7 @@ FXploreMenu = {}
                 fxploreMap.decrypt.level = "shell"
                 fxploreMap.decrypt.minPar = 1
                 fxploreMap.decrypt.run = function(x)
+                    if not mainMenu.fx.crypto then return print("Error: You must be relative to the target system to use this method!".color(__errC))
                     file = mainMenu.fx.folder.get_files.first("name", x[0])
                     if not file then return print("Couldn't find file of that name!".color(__errC))
                     if not mainMenu.fx.crypto then return print("Couldn't find or move up crypto.so!".color(__errC))
@@ -827,28 +829,6 @@ FXploreMenu = {}
         end for
         print(format_columns(info))
         end function
-    FXploreMenu.getCrypto = function
-            crypto = include_lib("/lib/crypto.so")
-            if not crypto then
-                crf = self.find("crypto.so")
-                if crf != null then
-                    for i in range(0, crf.len)
-                        crypto = include_lib(crf[i].path)
-                        if typeof(crypto) == "cryptoLib" then break
-                    end for
-                else
-                    if self.shell != null then
-                        getD = mainMenu.getDrop(File(self.computer, "/"))
-                        if not getD then return print("Fxplore: Move Crypto: Couldn't find a place to drop!")
-                        drop = getD.path
-                        out = package.Depth[0].shell.scp(package.CrF.path, drop, self.shell)
-                        if out isa string then return print(out.color(__errC))
-                        crypto = include_lib(drop + "crypto.so")
-                    end if    
-                end if
-            end if
-            return crypto
-        end function
     FXploreMenu.help = function
         for each in self.cmd.indexes
             level = ""
@@ -868,7 +848,14 @@ FXploreMenu = {}
         if self.shell then
             x = "shell"
             n = self.computer.get_name
-            self.crypto = self.getCrypto
+            mx = package.Depth[package.Session].Mx
+            if (mx.pubIp + mx.locIp) == (self.computer.public_ip + self.computer.local_ip) then
+                cr = mainMenu.tempCr
+                if not cr isa string then self.crypto = cr.lib
+                if cr isa string then print(cr.color(__errC))
+            else
+                print("Crypto methods inaccessable...".color("#5bcff9"))
+            end if
         end if
         print(("Launching FXplore at <b>" + x + "</b> level...").color("#5bcff9"))
         while true
