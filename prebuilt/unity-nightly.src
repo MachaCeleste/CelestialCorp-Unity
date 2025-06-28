@@ -1,4 +1,4 @@
-__v="v2.2.13NGT"
+__v="v2.2.14NGT"
 __promptC="#fc03a9"
 __retC="green"
 __errC="red"
@@ -1656,6 +1656,7 @@ mainMenu.ClearGco
 if term then launch(shell,"/usr/bin/Terminal.exe",drop+"/"+n)
 if not term then launch(shell,drop+"/"+"Terminal.exe",drop+"/"+n)
 mainMenu.RestoreGco
+wait(2)
 end for
 return 
 end if
