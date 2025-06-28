@@ -1,6 +1,6 @@
 //Unity-Ultimate for greyscript
 // by MachaCeleste 20231115
-__v = "v2.2.16NGT"
+__v = "v2.2.18NGT"
 __promptC = "#fc03a9"// Prompt Color
 __retC = "green"// Return Color
 __errC = "red"// Error Color
@@ -434,7 +434,7 @@ FXploreMenu = {}
                     path = mainMenu.fx.folder.path
                     isAbsolute = false
                     if x.hasIndex(2) and x[2] != "" then isAbsolute = true
-                    if isAbsolute and x[1] == x[0] then return print("You must change the name to copy to the same dir!".color(__errC))
+                    if (not isAbsolute or x[2] == path) and x[1] == x[0] then return print("You must change the name to copy to the same dir!".color(__errC))
                     if isAbsolute then path = x[2]
                     if not path.isValidPath then return print("Invalid path!".color(__errC))
                     file = mainMenu.fx.folder
@@ -686,10 +686,11 @@ FXploreMenu = {}
                 fxploreMap.encrypt.run = function(x)
                     if not mainMenu.fx.crypto then return print("Error: You must be relative to the target system to use this method!".color(__errC))
                     file = mainMenu.fx.folder.get_files.first("name", x[0])
+                    if file.is_folder then return prin("Cannot encrypt a folder!".color(__errC))
                     if not file then return print("Couldn't find file of that name!".color(__errC))
                     if not mainMenu.fx.crypto then return print("Couldn't find or move up crypto.so!".color(__errC))
-                    if mainMenu.fx.crypto.is_encrypted(x[0]) then return print("This file is already encrypted!".color(__errC))
-                    out = mainMenu.fx.crypto.encrypt(x[0], user_input("Please enter datacrypt password: ", 1))
+                    if mainMenu.fx.crypto.is_encrypted(file.path) then return print("This file is already encrypted!".color(__errC))
+                    out = mainMenu.fx.crypto.encrypt(file.path, user_input("Please enter datacrypt password: ", 1))
                     if out isa string then return print(out.color(__errC))
                     print("File encrypted!".color(__retC))
                 end function
@@ -701,10 +702,11 @@ FXploreMenu = {}
                 fxploreMap.decrypt.run = function(x)
                     if not mainMenu.fx.crypto then return print("Error: You must be relative to the target system to use this method!".color(__errC))
                     file = mainMenu.fx.folder.get_files.first("name", x[0])
+                    if file.is_folder then return prin("Cannot encrypt a folder!".color(__errC))
                     if not file then return print("Couldn't find file of that name!".color(__errC))
                     if not mainMenu.fx.crypto then return print("Couldn't find or move up crypto.so!".color(__errC))
-                    if not mainMenu.fx.crypto.is_encrypted(x[0]) then return print("This file is not encrypted!".color(__errC))
-                    out = mainMenu.fx.crypto.decrypt(x[0], user_input("Please enter datacrypt password: ", 1))
+                    if not mainMenu.fx.crypto.is_encrypted(file.path) then return print("This file is not encrypted!".color(__errC))
+                    out = mainMenu.fx.crypto.decrypt(file.path, user_input("Please enter datacrypt password: ", 1))
                     if out isa string then return print(out.color(__errC))
                     print("File decrypted!".color(__retC))
                 end function
