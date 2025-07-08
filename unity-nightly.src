@@ -3107,7 +3107,7 @@ Menu = {}
         package.Depth[package.Session].Ac = aCo
         end function
     Menu.displayInfo = function
-        print"<align=""center"">"+("#"*60)+"</align>"
+        print"<align=""center"">"+("#"*60)+"</align>"//Zunne3tSfc
         print("<align=""center"">"+(("Metaxploit v" + package.Depth[0].Mx.ver + " | " + "Aptclient v" + package.Depth[0].Ac.ver).color("#5bcff9"))+"</align>")
         print("<align=""center"">"+(("Crypto " + package.Cr.pubIp + " - " + package.Cr.locIp + " v" + package.Cr.ver).color("#f5a8b8"))+"</align>")
         print("<align=""center"">"+(("Session# " + package.Session + " Loc " + package.thisC.public_ip + " - " + package.thisC.local_ip).color("white"))+"</align>")
